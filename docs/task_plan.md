@@ -61,6 +61,7 @@
 - [ ] Add Google Sheets equity history sync or import after manual workflow is proven.
 - [x] Add exchange CSV import parser foundation after account-equity source is stable.
 - [x] Add exchange trade ledger import UI after parser/storage/calculation foundation is approved.
+- [x] Correct imported account equity cumulative-return semantics and daily return calculation.
 - [ ] Add exchange XLSX import parser after CSV workflow is proven.
 - [x] Complete SPX/watchlist provider symbol discovery planning.
 - [x] Add local FMP API key placeholder support for quote verification.

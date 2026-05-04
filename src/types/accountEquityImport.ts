@@ -13,8 +13,8 @@ export type EquityImportIssueCode =
   | "missing_equity"
   | "invalid_equity"
   | "negative_equity"
-  | "missing_percent_change"
-  | "invalid_percent_change"
+  | "missing_cumulative_return_percent"
+  | "invalid_cumulative_return_percent"
   | "duplicate_date"
   | "out_of_order_rows";
 

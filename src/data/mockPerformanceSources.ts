@@ -8,7 +8,7 @@ export const mockAccountEquityHistory = [
     id: "equity-2026-04-27",
     date: "2026-04-27",
     equity: 100000,
-    percentChange: 0,
+    cumulativeReturnPercent: 0,
     source: "google_sheet",
     importedAt: "2026-05-01T09:05:00-04:00"
   },
@@ -16,7 +16,7 @@ export const mockAccountEquityHistory = [
     id: "equity-2026-04-28",
     date: "2026-04-28",
     equity: 100700,
-    percentChange: 0.7,
+    cumulativeReturnPercent: 0.7,
     source: "google_sheet",
     importedAt: "2026-05-01T09:05:00-04:00"
   },
@@ -24,7 +24,7 @@ export const mockAccountEquityHistory = [
     id: "equity-2026-04-29",
     date: "2026-04-29",
     equity: 100200,
-    percentChange: -0.5,
+    cumulativeReturnPercent: 0.2,
     source: "google_sheet",
     importedAt: "2026-05-01T09:05:00-04:00"
   },
@@ -32,7 +32,7 @@ export const mockAccountEquityHistory = [
     id: "equity-2026-04-30",
     date: "2026-04-30",
     equity: 101100,
-    percentChange: 0.9,
+    cumulativeReturnPercent: 1.1,
     source: "google_sheet",
     importedAt: "2026-05-01T09:05:00-04:00"
   },
@@ -40,7 +40,7 @@ export const mockAccountEquityHistory = [
     id: "equity-2026-05-01",
     date: "2026-05-01",
     equity: 100900,
-    percentChange: -0.2,
+    cumulativeReturnPercent: 0.9,
     source: "google_sheet",
     importedAt: "2026-05-01T09:05:00-04:00"
   }

@@ -14,21 +14,46 @@ function canUseLocalStorage() {
 }
 
 function isAccountEquitySnapshot(value: unknown): value is AccountEquitySnapshot {
+  return normalizeAccountEquitySnapshot(value) !== null;
+}
+
+function normalizeAccountEquitySnapshot(value: unknown): AccountEquitySnapshot | null {
   if (!value || typeof value !== "object") {
-    return false;
+    return null;
   }
 
-  const snapshot = value as Partial<AccountEquitySnapshot>;
+  const snapshot = value as Partial<AccountEquitySnapshot> & { percentChange?: unknown };
+  const id = snapshot.id;
+  const date = snapshot.date;
+  const equity = snapshot.equity;
+  const source = snapshot.source;
+  const cumulativeReturnPercent =
+    typeof snapshot.cumulativeReturnPercent === "number"
+      ? snapshot.cumulativeReturnPercent
+      : typeof snapshot.percentChange === "number"
+        ? snapshot.percentChange
+        : null;
+  const isValid =
+    typeof id === "string" &&
+    typeof date === "string" &&
+    typeof equity === "number" &&
+    Number.isFinite(equity) &&
+    typeof cumulativeReturnPercent === "number" &&
+    Number.isFinite(cumulativeReturnPercent) &&
+    source === "csv_import";
 
-  return (
-    typeof snapshot.id === "string" &&
-    typeof snapshot.date === "string" &&
-    typeof snapshot.equity === "number" &&
-    Number.isFinite(snapshot.equity) &&
-    typeof snapshot.percentChange === "number" &&
-    Number.isFinite(snapshot.percentChange) &&
-    snapshot.source === "csv_import"
-  );
+  if (!isValid) {
+    return null;
+  }
+
+  return {
+    id,
+    date,
+    equity,
+    cumulativeReturnPercent,
+    source,
+    importedAt: snapshot.importedAt
+  };
 }
 
 function isEquityImportSummary(value: unknown): value is EquityImportSummary {
@@ -78,7 +103,13 @@ export function loadImportedAccountEquityHistory() {
       return null;
     }
 
-    return [...parsedHistory].sort((a, b) => a.date.localeCompare(b.date));
+    const normalizedHistory = parsedHistory.map(normalizeAccountEquitySnapshot);
+
+    if (!normalizedHistory.every((snapshot): snapshot is AccountEquitySnapshot => snapshot !== null)) {
+      return null;
+    }
+
+    return normalizedHistory.sort((a, b) => a.date.localeCompare(b.date));
   } catch {
     return null;
   }

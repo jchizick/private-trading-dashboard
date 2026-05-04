@@ -7,7 +7,7 @@ export interface AccountEquitySnapshot {
   id: string;
   date: ISODate;
   equity: number;
-  percentChange: number;
+  cumulativeReturnPercent: number;
   source: PerformanceSource;
   importedAt?: ISODateTime;
 }

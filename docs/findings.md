@@ -1529,3 +1529,29 @@ Sample reviewed terminal values from the verification run:
 - Server cache remains in-memory and resets when the Next.js process restarts.
 - `WTI` and `DXY` still require another provider, a plan change, or continued unavailable/mock treatment.
 - The SPX chart remains a code-native placeholder; no candle/chart feed, websocket, or explicit daily market snapshot capture exists.
+
+## Account Equity Return Semantics Fix Findings - 2026-05-04
+
+### Root Cause
+
+- Imported account equity rows used `AccountEquitySnapshot.percentChange` for the CSV's third column.
+- The user's Google Sheet third column is cumulative/total return from starting equity, not daily percent change.
+- `derivePerformanceReviewSnapshot` used the latest imported `percentChange` directly as `dailyReturnPercent`, so a cumulative value such as `192%` appeared in the top Daily card.
+
+### Corrected Source Semantics
+
+- `AccountEquitySnapshot` now stores the imported return column as `cumulativeReturnPercent`.
+- The CSV parser still accepts existing headers including `Percent Change`, `% Change`, `percentChange`, and `pctChange`, but maps them into cumulative-return semantics.
+- The parser also accepts explicit cumulative/total return headers: `cumulativeReturnPercent`, `totalReturnPercent`, `cumulativeReturn`, and `totalReturn`.
+- Existing browser localStorage account equity records with old `percentChange` fields are normalized to `cumulativeReturnPercent` on load.
+
+### Corrected Metric Definitions
+
+- Daily return now derives from equity values using latest equity versus the previous available row.
+- Weekly return, Monthly return, YTD return, equity curve, max drawdown, latest equity, and account equity change continue to derive from equity values only.
+- The imported cumulative-return column remains source context and is not used as the Daily card value.
+
+### Verification
+
+- The observed example `292.81` to `291.79` now calculates Daily as roughly `-0.35%` instead of using the imported cumulative `192%`.
+- `npm run build` passed after the source model, parser, storage migration, calculation, fixture, and documentation updates.

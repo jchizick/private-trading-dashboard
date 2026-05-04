@@ -112,19 +112,21 @@ Required logical columns:
 
 - `date`
 - `equity`
-- `percentChange`
+- `cumulativeReturnPercent`
 
 Accepted header aliases:
 
 - Date: `date`
 - Equity: `equity`
-- Percent change: `percentChange`, `% Change`, `pctChange`
+- Cumulative return: `cumulativeReturnPercent`, `totalReturnPercent`, `totalReturn`, `cumulativeReturn`
+- Legacy sheet aliases accepted as cumulative return: `Percent Change`, `percentChange`, `% Change`, `pctChange`
 
 Accepted values:
 
 - Dates must be valid `YYYY-MM-DD`.
 - Equity must be numeric and may include commas or a leading `$` when quoted if needed.
-- Percent change may be numeric or end with `%`.
+- Cumulative return percent may be numeric or end with `%`.
+- The imported cumulative return column is stored for source context; Daily, Weekly, Monthly, and YTD return cards are derived from equity values.
 
 Behavior:
 
@@ -133,6 +135,7 @@ Behavior:
 - Out-of-order rows create a warning.
 - Unexpected columns are ignored with warnings.
 - Imported account equity history drives account-level Performance Review metrics.
+- Daily return is calculated from latest equity versus the previous available equity row, not from the imported cumulative-return column.
 - Clearing account equity removes only account equity history and its import summary.
 - Clearing account equity does not remove exchange trade ledger data.
 

@@ -107,6 +107,22 @@ export function calculateReturnForPeriod(
   return typeof percentChange === "number" ? roundMetric(percentChange) : undefined;
 }
 
+export function calculateDailyReturn(history: AccountEquitySnapshot[], asOfDate: ISODate) {
+  const sortedHistory = sortAccountEquityHistory(history).filter(
+    (snapshot) => snapshot.date <= asOfDate
+  );
+  const latestSnapshot = sortedHistory.at(-1);
+  const previousSnapshot = sortedHistory.at(-2);
+
+  if (!latestSnapshot || !previousSnapshot) {
+    return undefined;
+  }
+
+  const percentChange = calculatePercentChange(previousSnapshot.equity, latestSnapshot.equity);
+
+  return typeof percentChange === "number" ? roundMetric(percentChange) : undefined;
+}
+
 export function calculateMaxDrawdown(history: AccountEquitySnapshot[]) {
   const sortedHistory = sortAccountEquityHistory(history);
   let peakEquity = sortedHistory[0]?.equity;
@@ -155,7 +171,7 @@ export function derivePerformanceReviewSnapshot(
     accountEquity: {
       latestEquity: latestAvailableSnapshot?.equity,
       equityCurvePercent: buildEquityCurve(historyThroughAsOfDate),
-      dailyReturnPercent: latestAvailableSnapshot?.percentChange,
+      dailyReturnPercent: calculateDailyReturn(historyThroughAsOfDate, asOfDate),
       weeklyReturnPercent: calculateReturnForPeriod(historyThroughAsOfDate, asOfDate, "weekly"),
       monthlyReturnPercent: calculateReturnForPeriod(historyThroughAsOfDate, asOfDate, "monthly"),
       ytdReturnPercent: calculateReturnForPeriod(historyThroughAsOfDate, asOfDate, "ytd"),

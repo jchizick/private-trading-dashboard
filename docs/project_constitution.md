@@ -7,6 +7,7 @@
 - Current `src/types/dashboard.ts` contracts are view models unless a specific type is explicitly promoted into a persistence schema.
 - Persisted daily state should be modeled around a planned `DailyDashboardSnapshot`, not the current `DashboardData` screen payload.
 - Account-level equity history and exchange trade exports must remain separate performance source models.
+- Account equity source rows use cumulative/total return semantics for imported return columns; Performance Review period return cards must derive from equity values, not from an imported cumulative return column.
 - `PerformanceReviewSnapshot` should be derived from account equity history plus optional exchange trade ledger data.
 - Account-equity Performance Review calculations must consume `AccountEquitySnapshot[]` only and remain agnostic to whether rows came from mock data, CSV, Google Sheets, local files, or Supabase.
 - Imported account equity history must persist separately from `DailyDashboardSnapshot` and separately from future exchange trade ledger records.

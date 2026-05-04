@@ -19,10 +19,10 @@ interface CsvRow {
 interface ColumnIndexes {
   date?: number;
   equity?: number;
-  percentChange?: number;
+  cumulativeReturnPercent?: number;
 }
 
-const REQUIRED_COLUMNS: Array<keyof ColumnIndexes> = ["date", "equity", "percentChange"];
+const REQUIRED_COLUMNS: Array<keyof ColumnIndexes> = ["date", "equity", "cumulativeReturnPercent"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function createIssue({
@@ -74,11 +74,15 @@ function getLogicalColumn(header: string): keyof ColumnIndexes | null {
   }
 
   if (
+    normalizedHeader === "cumulativereturnpercent" ||
+    normalizedHeader === "totalreturnpercent" ||
+    normalizedHeader === "totalreturn" ||
+    normalizedHeader === "cumulativereturn" ||
     normalizedHeader === "percentchange" ||
     normalizedHeader === "%change" ||
     normalizedHeader === "pctchange"
   ) {
-    return "percentChange";
+    return "cumulativeReturnPercent";
   }
 
   return null;
@@ -244,7 +248,7 @@ function parseEquity(value: string) {
   return Number.isFinite(parsedValue) ? parsedValue : null;
 }
 
-function parsePercentChange(value: string) {
+function parsePercent(value: string) {
   const normalizedValue = value.trim().replace(/%$/, "");
 
   if (normalizedValue === "") {
@@ -370,7 +374,7 @@ export function parseAccountEquityCsv(
 
     const rawDate = getCell(row, columnIndexes.date).trim();
     const rawEquity = getCell(row, columnIndexes.equity).trim();
-    const rawPercentChange = getCell(row, columnIndexes.percentChange).trim();
+    const rawCumulativeReturn = getCell(row, columnIndexes.cumulativeReturnPercent).trim();
 
     if (!rawDate) {
       rowIssues.push(
@@ -431,27 +435,27 @@ export function parseAccountEquityCsv(
       );
     }
 
-    const parsedPercentChange = parsePercentChange(rawPercentChange);
+    const parsedCumulativeReturn = parsePercent(rawCumulativeReturn);
 
-    if (!rawPercentChange) {
+    if (!rawCumulativeReturn) {
       rowIssues.push(
         createIssue({
           rowNumber: row.rowNumber,
-          code: "missing_percent_change",
+          code: "missing_cumulative_return_percent",
           severity: "error",
-          message: "Missing percent change.",
-          column: "percentChange"
+          message: "Missing cumulative return percent.",
+          column: "cumulativeReturnPercent"
         })
       );
-    } else if (parsedPercentChange === null) {
+    } else if (parsedCumulativeReturn === null) {
       rowIssues.push(
         createIssue({
           rowNumber: row.rowNumber,
-          code: "invalid_percent_change",
+          code: "invalid_cumulative_return_percent",
           severity: "error",
-          message: "Percent change must be a valid number, optionally followed by a percent sign.",
-          column: "percentChange",
-          rawValue: rawPercentChange
+          message: "Cumulative return percent must be a valid number, optionally followed by a percent sign.",
+          column: "cumulativeReturnPercent",
+          rawValue: rawCumulativeReturn
         })
       );
     }
@@ -484,14 +488,14 @@ export function parseAccountEquityCsv(
     if (
       rowIssues.length === 0 &&
       parsedEquity !== null &&
-      parsedPercentChange !== null &&
+      parsedCumulativeReturn !== null &&
       rawDate
     ) {
       records.push({
         id: `equity-${rawDate}`,
         date: rawDate,
         equity: parsedEquity,
-        percentChange: parsedPercentChange,
+        cumulativeReturnPercent: parsedCumulativeReturn,
         source: "csv_import",
         importedAt
       });

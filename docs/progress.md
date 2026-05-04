@@ -590,6 +590,19 @@
 - Made no app behavior changes, source-code changes, provider changes, storage changes, dependencies, or UI changes.
 - Verified `npm run build` passes after the documentation update.
 
+## Account Equity Return Semantics Fix - 2026-05-04
+
+- Audited account equity return flow across `AccountEquitySnapshot`, account equity CSV import types, parser/storage helpers, `performanceReviewCalculations`, `performanceReviewViewModel`, `PerformanceModule`, and mock account equity fixtures.
+- Confirmed the incorrect imported Daily card came from treating the imported sheet's third column as row-level daily `percentChange`.
+- Renamed the account equity source field to `cumulativeReturnPercent` so imported Google Sheet return columns are modeled as cumulative/total return from starting equity.
+- Kept CSV header compatibility for legacy sheet headers such as `Percent Change`, `% Change`, `percentChange`, and `pctChange`, but now maps them into `cumulativeReturnPercent`.
+- Added explicit parser aliases for future cumulative/total return headers such as `cumulativeReturnPercent`, `totalReturnPercent`, `cumulativeReturn`, and `totalReturn`.
+- Updated account equity localStorage loading to migrate old imported records with `percentChange` into `cumulativeReturnPercent`.
+- Changed Daily return derivation to use latest equity versus the previous available equity row: `((latestEquity - previousEquity) / previousEquity) * 100`.
+- Confirmed Weekly, Monthly, YTD, equity curve, max drawdown, latest equity, and account equity change continue to derive from equity values rather than the imported cumulative-return column.
+- Updated mock account equity fixture rows and handoff documentation to reflect cumulative-return semantics.
+- Verified `npm run build` passes after the fix.
+
 ## Next Steps
 
 - Add tests around the pure Performance Review calculation and CSV parser helpers before broadening source inputs.
