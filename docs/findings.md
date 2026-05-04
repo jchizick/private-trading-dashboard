@@ -1801,3 +1801,37 @@ Sample reviewed terminal values from the verification run:
 - Updated market quote route tests for missing-key unavailable maps, mixed provider success, stale server-cache fallback, and partial provider failure with `VIX` and `EURUSD`.
 - No normalization helper behavior changes were needed.
 - No Performance Review, Fear & Greed, Gamma, Trading Context, websocket, candle/chart, dependency, or provider-key behavior changes were made.
+
+## Deployment Hardening Foundation Findings - 2026-05-04
+
+### Package And Script Hardening
+
+- Pinned `next`, `react`, `react-dom`, `typescript`, `vitest`, `@types/node`, `@types/react`, and `@types/react-dom` to the currently installed lockfile versions.
+- Replaced the broken `next lint` script with `typecheck: tsc --noEmit`.
+- Added `verify: npm run test && npm run typecheck && npm run build` as the standard local pre-deployment check.
+- No ESLint dependency or lint configuration was added during this slice.
+
+### Deployment Documentation
+
+- Added `README.md` with project summary, local setup, environment variables, commands, verification sequence, architecture boundaries, deployment notes, and private MVP limitations.
+- Updated the handoff documentation with Vercel deployment notes.
+- Vercel env vars to configure: `CMC_API_KEY`, `FMP_API_KEY`, and `TWELVE_DATA_API_KEY`.
+- Provider env vars must be configured for each Vercel environment that will be used, including Production and Preview.
+- Provider keys remain server-side only; no `NEXT_PUBLIC_` provider keys should be created.
+
+### Runtime And Persistence Warnings
+
+- Documented that the app currently has no authentication and should use Vercel Deployment Protection or a simple auth layer before public internet exposure.
+- Documented that current persistence is browser localStorage only and is device/browser-specific.
+- Documented that server memory caches for `/api/fear-greed` and `/api/market-quotes` are best-effort only and can reset when the process or deployment runtime resets.
+
+### Audit Status
+
+- `npm audit --audit-level=moderate` reports 2 moderate PostCSS advisories through Next.
+- `npm audit fix --force` should not be run because npm reports a breaking downgrade path to an old Next version.
+- The audit should be revisited through a compatible Next upgrade when a patched release path is available.
+
+### Stale Documentation Cleanup
+
+- Updated the project constitution to the current market quote provider map: `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT`.
+- Removed stale guidance that treated `WTI` and `DXY` as current unavailable MVP rows.

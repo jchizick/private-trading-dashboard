@@ -65,6 +65,18 @@ Run automated tests:
 npm run test
 ```
 
+Run TypeScript checking:
+
+```powershell
+npm run typecheck
+```
+
+Run the full local verification sequence:
+
+```powershell
+npm run verify
+```
+
 ## Environment Variables
 
 `.env.example` contains placeholders for:
@@ -82,6 +94,24 @@ Rules:
 - `FMP_API_KEY` is read only by `/api/market-quotes`.
 - `TWELVE_DATA_API_KEY` is read only by `/api/market-quotes`.
 - Client components call internal app routes only; they do not call external providers directly.
+
+## Deployment Notes
+
+The assumed deployment target is Vercel.
+
+Before deploying:
+
+- Add `CMC_API_KEY`, `FMP_API_KEY`, and `TWELVE_DATA_API_KEY` in Vercel Project Settings.
+- Set the keys for every environment you plan to use, including Production and Preview.
+- Redeploy after changing environment variables; existing deployments do not automatically receive changed values.
+- Keep provider keys server-side only. Do not create `NEXT_PUBLIC_` provider keys.
+- Run `npm run verify` locally before deployment.
+
+Deployment limitations:
+
+- The app currently has no authentication. Enable Vercel Deployment Protection or add a simple auth layer before public internet exposure.
+- Persistence is localStorage-only. Saved daily snapshots, imports, and browser caches are tied to the user's browser/device.
+- Server memory caches for `/api/fear-greed` and `/api/market-quotes` are best-effort and not durable storage. They can reset when the server process or deployment runtime resets.
 
 ## Manual Daily Workflow
 
@@ -266,7 +296,14 @@ Server memory caches:
 
 - Fear & Greed route cache lives only in the running Next.js process.
 - Market quotes route cache lives only in the running Next.js process.
-- Server memory caches reset when the process restarts.
+- Server memory caches reset when the process or deployment runtime resets.
+
+## Dependency And Audit Status
+
+- Runtime package versions are pinned in `package.json` and `package-lock.json`.
+- `npm audit --audit-level=moderate` currently reports 2 moderate PostCSS advisories through Next.
+- Do not run `npm audit fix --force`; npm reports that the force path would install an unsafe/breaking Next downgrade.
+- Revisit the audit through a compatible Next upgrade when a patched release path is available.
 
 ## Known Limitations
 
@@ -280,14 +317,13 @@ Server memory caches:
 - No websocket feed.
 - No real candle/chart feed.
 - No explicit daily market snapshot capture yet.
-- No deployment hardening yet.
-- Dependencies still use `latest` ranges.
+- No public-access protection has been implemented yet.
 
 ## Recommended Roadmap
 
 1. Expand tests beyond import/calculation/normalization, route fallback, and storage-helper coverage to component hydration and view-model adapters.
 2. Add explicit daily market snapshot capture for point-in-time market and sentiment reads.
-3. Add Supabase persistence and authentication.
+3. Add Supabase persistence and application authentication.
 4. Add Google Sheets sync for account equity history.
 5. Add Gamma screenshot/source URL workflow after manual Gamma entry remains stable.
-6. Add deployment hardening: pinned dependencies, audit resolution, environment checks, and production runtime notes.
+6. Add private access protection before public internet deployment.

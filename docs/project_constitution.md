@@ -33,8 +33,8 @@
 - Live/cache market quote data must remain separate from `DailyDashboardSnapshot`; daily snapshots may later capture point-in-time SPX/watchlist values during an explicit save flow.
 - Browser stale cache for market quotes uses `market-command:market-quotes-cache` and remains separate from saved daily history.
 - `MarketSituationModule` must render mock-first and hydrate market quote data only after client mount.
-- MVP market quotes should use only verified symbols: FMP `ESUSD` primary and `^GSPC` fallback for `SPX500`, Twelve Data `XAU/USD` primary and FMP `GCUSD` fallback for `XAUUSD`, FMP `BTCUSD` primary and Twelve Data `BTC/USD` fallback for `BTCUSDT`, and Twelve Data `CAD/USD` for `CADUSD`.
-- `WTI` and `DXY` should remain unavailable/mock until another provider or plan is approved.
+- MVP market quotes should use only verified symbols: FMP `ESUSD` primary and `^GSPC` fallback for `SPX500`, Twelve Data `XAU/USD` primary and FMP `GCUSD` fallback for `XAUUSD`, FMP `^VIX` for `VIX`, FMP `EURUSD` for `EURUSD`, Twelve Data `CAD/USD` for `CADUSD`, and FMP `BTCUSD` primary with Twelve Data `BTC/USD` fallback for `BTCUSDT`.
+- Current market quote watchlist order is `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT`.
 - Live integrations must preserve mock fallback behavior when provider, route, cache, or client fetch state is unavailable.
 - `src/data/mockDashboardData.ts` provides the server-rendered mock view-model data; Performance Review can hydrate from imported local account equity history after client mount.
 - Shared visual primitives belong in `src/components/ui`.
@@ -136,9 +136,9 @@
 - Account equity CSV parsing, localStorage helpers, import UI, and Performance Review runtime source selection now exist for account equity history.
 - Exchange trade ledger CSV parsing, localStorage helpers, import UI, and Performance Review runtime metric wiring now exist for imported exchange close trades.
 - CoinMarketCap Fear & Greed now uses a server-side proxy, server memory cache, browser stale cache, and mock fallback.
-- Financial Modeling Prep and Twelve Data market quotes now use a server-side proxy route, server memory cache, and mock/unavailable fallback rows.
+- Financial Modeling Prep and Twelve Data market quotes now use a server-side proxy route, server memory cache, browser stale cache, and mock/unavailable fallback behavior.
 - No broad validation layer exists; account equity CSV import has focused parser validation only.
 - SPX/watchlist live market quote UI hydration now exists, but explicit daily market snapshot capture has not been added yet.
 - No gamma image upload implementation exists.
 - Vitest now covers account equity CSV import and account equity return calculations; broader test coverage is still pending.
-- Dependency ranges are not pinned.
+- Dependency ranges are pinned for deployment hardening.

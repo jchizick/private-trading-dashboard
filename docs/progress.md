@@ -688,6 +688,15 @@
 - No UI redesign, dependencies, websocket feed, candle/chart data, Performance Review, Fear & Greed, Gamma, or Trading Context changes were added.
 - `npm run test` passed with 14 test files and 150 tests.
 
+## Deployment Hardening Foundation - 2026-05-04
+
+- Pinned package versions for Next, React, React DOM, TypeScript, Vitest, and related type packages to the currently installed lockfile versions.
+- Replaced the broken `next lint` script with `typecheck` and added a `verify` script that runs tests, type checking, and production build.
+- Added `README.md` with local setup, environment variables, verification commands, architecture boundaries, deployment notes, and private MVP limitations.
+- Updated deployment documentation for Vercel environment variable setup, Production/Preview env reminders, server-side-only provider key handling, localStorage-only persistence, no-auth risk, and best-effort server memory caches.
+- Updated stale project constitution market quote guidance to the current `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT` provider map.
+- Documented the current npm audit status: 2 moderate PostCSS advisories through Next, with no `npm audit fix --force` because npm recommends an unsafe/breaking downgrade path.
+
 ## Next Steps
 
 - Expand tests into component hydration behavior and view-model adapters before broadening source inputs further.
@@ -698,4 +707,4 @@
 - Decide the first live market data source, starting with SPX.
 - Later add source reference or screenshot upload for Gamma after manual numeric entry is proven.
 - Consider Supabase or another durable sync layer only after local workflows stabilize.
-- Pin dependency versions and address npm audit findings before hardening.
+- Enable Vercel Deployment Protection or add simple auth before public internet deployment.

@@ -93,9 +93,11 @@
 
 ## Phase 5 - Hardening
 
-- [ ] Replace `latest` dependency ranges with pinned compatible versions after stack policy is chosen.
-- [ ] Resolve or document npm audit findings.
-- [ ] Add lint/typecheck script behavior compatible with the installed Next version.
+- [x] Replace `latest` dependency ranges with pinned compatible versions after stack policy is chosen.
+- [x] Resolve or document npm audit findings.
+- [x] Add lint/typecheck script behavior compatible with the installed Next version.
+- [x] Add deployment setup notes for Vercel env vars and localStorage-only limitations.
+- [ ] Add private access protection before public internet deployment.
 - [x] Add account equity CSV parser and return calculation tests.
 - [x] Add exchange trade ledger CSV parser and calculation tests.
 - [x] Allow exact duplicate exchange close rows to skip with warnings.
