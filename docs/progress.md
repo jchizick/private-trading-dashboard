@@ -614,9 +614,19 @@
 - Patched one parser alias gap found while writing tests: `Cumulative Return %` and `Total Return %` are now accepted as explicit cumulative/total return headers.
 - `npm run test` passed with 2 test files and 31 tests.
 
+## Exchange Trade Ledger Testing Foundation - 2026-05-04
+
+- Added focused exchange trade ledger CSV parser coverage in `src/lib/exchangeTradeLedgerCsvImport.test.ts`.
+- Parser tests cover accepted Filled close-long/close-short rows, import metadata, header aliases, Toronto-local time parsing, raw time preservation, invalid time formats, direction handling, ignored open/non-filled rows, missing status, close-row validation errors, duplicate composite rows, unexpected columns, blank rows, and accepted-record sorting.
+- Added focused trade ledger metric coverage in `src/lib/tradeLedgerCalculations.test.ts`.
+- Calculation tests cover after-fee net PnL, accepted-close filtering, trade counts, win rate, breakeven treatment, gross/net PnL separation, total fees, gross profit/loss, average win/loss, profit factor fallback, symbol breakdown, direction breakdown, date range, latest trade time, ignored non-accepted rows, and empty input.
+- No parser or calculation behavior changes were needed; the new tests matched existing behavior.
+- `npm run test` passed with 4 test files and 81 tests.
+- `npm run build` passed after the new test coverage and documentation updates.
+
 ## Next Steps
 
-- Expand tests beyond account equity into trade-ledger calculations, storage validators, route fallback behavior, and view-model adapters before broadening source inputs further.
+- Expand tests beyond the performance import/calculation layer into storage validators, route fallback behavior, and view-model adapters before broadening source inputs further.
 - Add an explicit market snapshot capture action later if saved daily SPX/watchlist reads become useful.
 - Consider another provider or plan change only if live `WTI` or `DXY` become necessary.
 - Consider adding Total Fees and Net Realized PnL to the compact Trade Ledger display model if the panel needs those values outside the import preview.

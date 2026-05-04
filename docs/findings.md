@@ -1580,3 +1580,25 @@ Sample reviewed terminal values from the verification run:
 ### Verification
 
 - `npm run test` passed with 2 test files and 31 tests.
+
+## Exchange Trade Ledger Testing Foundation Findings - 2026-05-04
+
+### Parser Coverage
+
+- `src/lib/exchangeTradeLedgerCsvImport.test.ts` covers valid Filled close-long and close-short imports, accepted record metadata, numeric parsing for leverage/amount/order price/filled quantity/average price/closing PNL/fee, header aliases, Toronto-local `YYYY-MM-DD HH:mm:ss` parsing, raw time preservation, invalid and unsupported time formats, direction handling, status handling, ignored open/non-filled rows, close-row validation errors, duplicate composite trade blocking, unexpected column warnings, blank row skipping, and accepted-record sorting.
+- The duplicate-row test protects the composite key behavior across symbol, parsed time, direction, filled quantity, average filled price, closing PNL, fee, and status.
+- Ignored rows are covered as warnings that do not fail import unless true row errors are also present.
+
+### Calculation Coverage
+
+- `src/lib/tradeLedgerCalculations.test.ts` covers `getTradeNetPnl`, `isAcceptedCloseTrade`, and `deriveTradeLedgerMetrics`.
+- Calculation tests cover after-fee net PnL, gross closing PNL versus net realized PNL, absolute fee summing, trade/win/loss/breakeven counts, win rate, gross profit/loss, average win/loss, profit factor null fallback, symbol breakdown, long/short direction breakdown, accepted-trade sorting for date range/latest trade, ignored non-accepted rows, and empty-input safe defaults.
+
+### Fixes Found During Test Setup
+
+- No parser or calculation behavior bugs were found during this pass, so no production code was changed.
+
+### Verification
+
+- `npm run test` passed with 4 test files and 81 tests.
+- `npm run build` passed after the test and documentation updates.

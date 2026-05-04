@@ -93,4 +93,5 @@
 - [ ] Resolve or document npm audit findings.
 - [ ] Add lint/typecheck script behavior compatible with the installed Next version.
 - [x] Add account equity CSV parser and return calculation tests.
+- [x] Add exchange trade ledger CSV parser and calculation tests.
 - [ ] Add smoke tests or component tests once interactive workflows begin.
