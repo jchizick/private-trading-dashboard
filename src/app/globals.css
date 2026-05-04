@@ -2907,6 +2907,40 @@ body {
   gap: 5px;
 }
 
+.performanceImportIssueTotals,
+.performanceImportIssueGroup__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  text-transform: uppercase;
+}
+
+.performanceImportIssueTotals {
+  padding: 2px 1px 0;
+}
+
+.performanceImportIssueGroup {
+  display: grid;
+  gap: 5px;
+}
+
+.performanceImportIssueGroup__header {
+  padding: 5px 6px;
+  border: 1px solid rgba(39, 55, 56, 0.58);
+  border-radius: 3px;
+  background: rgba(11, 20, 21, 0.78);
+}
+
+.performanceImportIssueGroup__header strong {
+  color: var(--text-muted);
+  font-size: 0.58rem;
+  font-weight: 620;
+}
+
 .performanceImportIssue {
   display: grid;
   grid-template-columns: auto 46px minmax(0, 1fr);

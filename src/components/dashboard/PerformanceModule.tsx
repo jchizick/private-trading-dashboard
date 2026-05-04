@@ -60,6 +60,8 @@ type BreakdownGroup = {
 
 type PerformanceSourceState = "mock" | "imported";
 type TradeLedgerSourceState = "pending" | "imported";
+const TRADE_LEDGER_ERROR_PREVIEW_LIMIT = 5;
+const TRADE_LEDGER_WARNING_PREVIEW_LIMIT = 3;
 
 const performanceSourceCopy = {
   mock: {
@@ -423,6 +425,64 @@ function formatSymbols(symbols: string[]) {
 
 function getIssueTone(issue: EquityImportRowError | TradeLedgerImportRowError) {
   return issue.severity === "error" ? "negative" : "warning";
+}
+
+function TradeLedgerIssueGroup({
+  title,
+  issues,
+  limit
+}: {
+  title: string;
+  issues: TradeLedgerImportRowError[];
+  limit: number;
+}) {
+  if (issues.length === 0) {
+    return null;
+  }
+
+  const visibleIssues = issues.slice(0, limit);
+  const hiddenCount = Math.max(issues.length - visibleIssues.length, 0);
+
+  return (
+    <div className="performanceImportIssueGroup">
+      <div className="performanceImportIssueGroup__header">
+        <span>{title}</span>
+        <strong>{issues.length}</strong>
+      </div>
+      {visibleIssues.map((issue, index) => (
+        <div className="performanceImportIssue" key={`${issue.rowNumber}-${issue.code}-${index}`}>
+          <StatusBadge tone={getIssueTone(issue)}>{issue.severity}</StatusBadge>
+          <span>Row {issue.rowNumber}</span>
+          <p>{issue.message}</p>
+        </div>
+      ))}
+      {hiddenCount > 0 ? (
+        <p className="performanceImportIssueOverflow">
+          {hiddenCount} more {title.toLowerCase()} hidden.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function TradeLedgerImportIssues({ result }: { result: TradeLedgerImportResult }) {
+  const errorIssues = result.issues.filter((issue) => issue.severity === "error");
+  const warningIssues = result.issues.filter((issue) => issue.severity === "warning");
+
+  if (errorIssues.length === 0 && warningIssues.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="performanceImportIssues" aria-label="Trade ledger CSV validation issues">
+      <div className="performanceImportIssueTotals">
+        <span>Errors: {errorIssues.length}</span>
+        <span>Warnings: {warningIssues.length}</span>
+      </div>
+      <TradeLedgerIssueGroup title="Errors" issues={errorIssues} limit={TRADE_LEDGER_ERROR_PREVIEW_LIMIT} />
+      <TradeLedgerIssueGroup title="Warnings" issues={warningIssues} limit={TRADE_LEDGER_WARNING_PREVIEW_LIMIT} />
+    </div>
+  );
 }
 
 export function PerformanceModule({ performance }: PerformanceModuleProps) {
@@ -827,22 +887,7 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
                   <strong>{formatPnl(tradeLedgerImportResult.summary.netRealizedPnl)}</strong>
                 </div>
               </div>
-              {tradeLedgerImportResult.issues.length ? (
-                <div className="performanceImportIssues" aria-label="Trade ledger CSV validation issues">
-                  {tradeLedgerImportResult.issues.slice(0, 5).map((issue, index) => (
-                    <div className="performanceImportIssue" key={`${issue.rowNumber}-${issue.code}-${index}`}>
-                      <StatusBadge tone={getIssueTone(issue)}>{issue.severity}</StatusBadge>
-                      <span>Row {issue.rowNumber}</span>
-                      <p>{issue.message}</p>
-                    </div>
-                  ))}
-                  {tradeLedgerImportResult.issues.length > 5 ? (
-                    <p className="performanceImportIssueOverflow">
-                      {tradeLedgerImportResult.issues.length - 5} more issue(s) hidden.
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
+              <TradeLedgerImportIssues result={tradeLedgerImportResult} />
               <div className="performanceImportConfirm">
                 <button
                   className="terminalButton terminalButton--primary"

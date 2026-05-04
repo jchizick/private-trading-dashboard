@@ -195,7 +195,7 @@ Behavior:
 
 - Accepted close rows produce trade count, win/loss/breakeven counts, win rate, gross closing PNL, fees, net realized PNL, average win/loss, profit factor, symbol breakdown, and direction breakdown.
 - Net realized PNL uses `closingPnl - abs(fee)`.
-- Duplicate close rows block import using the trade composite key.
+- Exact duplicate close rows are skipped with warnings, are not imported, and are not counted in metrics.
 - Clearing trade ledger removes only exchange trade ledger records and its import summary.
 - Clearing trade ledger does not remove account equity history.
 

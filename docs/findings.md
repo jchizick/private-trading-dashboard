@@ -1585,8 +1585,8 @@ Sample reviewed terminal values from the verification run:
 
 ### Parser Coverage
 
-- `src/lib/exchangeTradeLedgerCsvImport.test.ts` covers valid Filled close-long and close-short imports, accepted record metadata, numeric parsing for leverage/amount/order price/filled quantity/average price/closing PNL/fee, header aliases, Toronto-local `YYYY-MM-DD HH:mm:ss` parsing, raw time preservation, invalid and unsupported time formats, direction handling, status handling, ignored open/non-filled rows, close-row validation errors, duplicate composite trade blocking, unexpected column warnings, blank row skipping, and accepted-record sorting.
-- The duplicate-row test protects the composite key behavior across symbol, parsed time, direction, filled quantity, average filled price, closing PNL, fee, and status.
+- `src/lib/exchangeTradeLedgerCsvImport.test.ts` covers valid Filled close-long and close-short imports, accepted record metadata, numeric parsing for leverage/amount/order price/filled quantity/average price/closing PNL/fee, header aliases, Toronto-local `YYYY-MM-DD HH:mm:ss` parsing, raw time preservation, invalid and unsupported time formats, direction handling, status handling, ignored open/non-filled rows, close-row validation errors, duplicate close-row skipping, unexpected column warnings, blank row skipping, and accepted-record sorting.
+- The duplicate-row tests protect warning-based exact duplicate skipping and non-deduping when optional export fields differ.
 - Ignored rows are covered as warnings that do not fail import unless true row errors are also present.
 
 ### Calculation Coverage
@@ -1602,3 +1602,42 @@ Sample reviewed terminal values from the verification run:
 
 - `npm run test` passed with 4 test files and 81 tests.
 - `npm run build` passed after the test and documentation updates.
+
+## Trade Ledger Import Preview Priority Findings - 2026-05-04
+
+### Root Cause
+
+- The Trade Ledger import preview rendered `tradeLedgerImportResult.issues.slice(0, 5)` in parser issue order.
+- Large real imports can produce thousands of expected ignored-row warnings before the smaller set of blocking errors, making the fix-required rows difficult to see.
+
+### Display Change
+
+- Trade Ledger preview issues are now grouped by severity with `Errors` first and `Warnings` second.
+- The preview shows compact error and warning totals before the grouped list.
+- Error rows and warning rows have independent preview limits; warnings remain visible but no longer dominate the top of the preview.
+- Each group keeps its own hidden-count message when more issues exist than are shown.
+
+### Import Behavior
+
+- Confirm Import remains gated by `tradeLedgerImportResult.ok`.
+- Parser behavior already defines `ok` from blocking errors only, so warnings alone do not block import.
+- No parser accepted-row rules, validation rules, trade calculations, or storage boundaries changed.
+
+## Exact Duplicate Trade Ledger Row Handling Findings - 2026-05-04
+
+### Behavior Change
+
+- Exact duplicate Filled close-trade rows are now skipped with `duplicate_trade` warnings instead of blocking import as errors.
+- The duplicate warning includes the original matching row number where possible, for example `Duplicate close trade row skipped; matches row 80.`
+- Duplicate skipped rows increment `rowsSkipped`, are excluded from `records`, and do not count toward `acceptedClosedTrades`.
+- `result.ok` remains true when duplicate warnings are the only issues, so Confirm Import stays enabled.
+
+### Metric Safety
+
+- Because duplicate rows are not added to accepted records, they do not affect trade count, win rate, gross closing PNL, total fees, net realized PNL, average win/loss, profit factor, symbol breakdown, or direction breakdown.
+- Duplicate detection was tightened to include optional export fields such as margin mode, leverage, amount, order price, and filled quantity asset so non-identical close rows are not auto-deduped.
+
+### Boundaries
+
+- Account equity duplicate-date blocking was not changed.
+- Trade calculation formulas, accepted close-trade rules, open/non-filled warning behavior, and storage boundaries were not changed.

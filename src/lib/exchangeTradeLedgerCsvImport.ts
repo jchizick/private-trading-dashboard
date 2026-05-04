@@ -449,29 +449,53 @@ function createCompositeKey({
   futures,
   time,
   direction,
+  marginMode,
+  leverage,
+  amount,
+  amountAsset,
+  orderPrice,
   filledQuantity,
+  filledQuantityAsset,
   averageFilledPrice,
   closingPnl,
+  closingPnlAsset,
   fee,
+  feeAsset,
   status
 }: {
   futures: string;
   time: string;
   direction: ExchangeTradeDirection;
+  marginMode: string;
+  leverage: number | null;
+  amount: number | null;
+  amountAsset: string | null;
+  orderPrice: string;
   filledQuantity: number;
+  filledQuantityAsset: string | null;
   averageFilledPrice: number;
   closingPnl: number;
+  closingPnlAsset: string | null;
   fee: number;
+  feeAsset: string | null;
   status: string;
 }) {
   return [
     futures.toUpperCase(),
     time,
     direction,
+    marginMode.toLowerCase(),
+    leverage ?? "",
+    amount ?? "",
+    amountAsset?.toUpperCase() ?? "",
+    orderPrice.toLowerCase(),
     filledQuantity,
+    filledQuantityAsset?.toUpperCase() ?? "",
     averageFilledPrice,
     closingPnl,
+    closingPnlAsset?.toUpperCase() ?? "",
     fee,
+    feeAsset?.toUpperCase() ?? "",
     status.toLowerCase()
   ].join("|");
 }
@@ -564,7 +588,7 @@ export function parseExchangeTradeLedgerCsv(
   const columnIndexes = parseHeader(headerRow, issues);
   const expectedCells = headerRow.cells.length;
   const records: ExchangeTradeRecord[] = [];
-  const duplicateKeys = new Set<string>();
+  const duplicateKeys = new Map<string, number>();
   const symbolsDetected = new Set<string>();
 
   for (const row of dataRows) {
@@ -808,33 +832,42 @@ export function parseExchangeTradeLedgerCsv(
       closingPnl &&
       fee
     ) {
+      const leverage = rawLeverage ? parseLeverage(rawLeverage) : null;
+      const amount = rawAmount ? parseNumberWithOptionalAsset(rawAmount) : null;
+      const orderPrice = rawOrderPrice ? parseOrderPrice(rawOrderPrice) : null;
       const duplicateKey = createCompositeKey({
         futures: rawFutures,
         time: parsedTime,
         direction,
+        marginMode: rawMarginMode,
+        leverage,
+        amount: amount?.value ?? null,
+        amountAsset: amount?.asset ?? null,
+        orderPrice: rawOrderPrice,
         filledQuantity: filledQuantity.value,
+        filledQuantityAsset: filledQuantity.asset,
         averageFilledPrice,
         closingPnl: closingPnl.value,
+        closingPnlAsset: closingPnl.asset,
         fee: fee.value,
+        feeAsset: fee.asset,
         status
       });
+      const matchingRowNumber = duplicateKeys.get(duplicateKey);
 
-      if (duplicateKeys.has(duplicateKey)) {
+      if (matchingRowNumber) {
+        rowsSkipped += 1;
         rowIssues.push(
           createIssue({
             rowNumber: row.rowNumber,
             code: "duplicate_trade",
-            severity: "error",
-            message: "Duplicate close trade row blocks import.",
+            severity: "warning",
+            message: `Duplicate close trade row skipped; matches row ${matchingRowNumber}.`,
             rawValue: duplicateKey
           })
         );
       } else {
-        duplicateKeys.add(duplicateKey);
-
-        const leverage = rawLeverage ? parseLeverage(rawLeverage) : null;
-        const amount = rawAmount ? parseNumberWithOptionalAsset(rawAmount) : null;
-        const orderPrice = rawOrderPrice ? parseOrderPrice(rawOrderPrice) : null;
+        duplicateKeys.set(duplicateKey, row.rowNumber);
         const record: ExchangeTradeRecord = {
           id: `trade-${parsedTime}-${rawFutures}-${row.rowNumber}`,
           sourceFileId: options.sourceName,

@@ -233,28 +233,46 @@ BTCUSDT,2026-01-21 09:55:00,Open Short,0.04 BTC,41749.8,0 USDT,1.12 USDT,Filled`
     expect(issueCodes(singleCloseTradeCsv(overrides))).toContain(expectedCode);
   });
 
-  it("blocks duplicate close rows using the composite trade key", () => {
+  it("skips exact duplicate close rows with warnings without double-counting metrics", () => {
     const result = parse(exchangeTradeLedgerCsvImportExamples.duplicateCompositeRows);
 
-    expect(result.ok).toBe(false);
+    expect(result.ok).toBe(true);
     expect(result.records).toHaveLength(1);
+    expect(result.summary.rowsSkipped).toBe(1);
+    expect(result.summary.errorCount).toBe(0);
+    expect(result.summary.warningCount).toBe(1);
     expect(result.summary.acceptedClosedTrades).toBe(1);
+    expect(result.summary.grossClosingPnl).toBe(7.95);
+    expect(result.summary.totalFees).toBe(0.03);
+    expect(result.summary.netRealizedPnl).toBe(7.92);
     expect(result.issues).toContainEqual(
       expect.objectContaining({
         code: "duplicate_trade",
-        severity: "error",
-        rawValue: "SOLUSDT|2026-01-21T14:14:25.000Z|Close Long|2.2|128.9|7.951|0.0283|filled"
+        severity: "warning",
+        message: "Duplicate close trade row skipped; matches row 2."
       })
     );
   });
 
-  it("allows non-duplicate rows when one composite-key field differs", () => {
+  it("allows non-duplicate rows when one required trade field differs", () => {
     const result = parse(`Futures,Time,Direction,Filled Quantity,Avg Filled Price,Closing PNL,Fee,Status
 SOLUSDT,2026-01-21 09:14:25,Close Long,2.2 SOL,128.9,7.951 USDT,0.0283 USDT,Filled
 SOLUSDT,2026-01-21 09:14:25,Close Long,2.2 SOL,128.9,7.952 USDT,0.0283 USDT,Filled`);
 
     expect(result.ok).toBe(true);
     expect(result.records).toHaveLength(2);
+    expect(result.issues.some((issue) => issue.code === "duplicate_trade")).toBe(false);
+  });
+
+  it("does not dedupe close rows when optional export fields differ", () => {
+    const result = parse(`Futures,Time,Direction,Margin Mode,Leverage,Amount,Order Price,Filled Quantity,Avg Filled Price,Closing PNL,Fee,Status
+SOLUSDT,2026-01-21 09:14:25,Close Long,Cross,12X,2.2 SOL,Market,2.2 SOL,128.9,7.951 USDT,0.0283 USDT,Filled
+SOLUSDT,2026-01-21 09:14:25,Close Long,Isolated,10X,2.2 SOL,128.8,2.2 SOL,128.9,7.951 USDT,0.0283 USDT,Filled`);
+
+    expect(result.ok).toBe(true);
+    expect(result.records).toHaveLength(2);
+    expect(result.summary.acceptedClosedTrades).toBe(2);
+    expect(result.summary.rowsSkipped).toBe(0);
     expect(result.issues.some((issue) => issue.code === "duplicate_trade")).toBe(false);
   });
 

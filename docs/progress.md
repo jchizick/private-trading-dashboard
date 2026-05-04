@@ -624,6 +624,25 @@
 - `npm run test` passed with 4 test files and 81 tests.
 - `npm run build` passed after the new test coverage and documentation updates.
 
+## Trade Ledger Import Preview Priority - 2026-05-04
+
+- Scoped the pass to Trade Ledger import preview display inside `PerformanceModule`.
+- Changed the Trade Ledger issue preview from raw first-five issue order to grouped issue display.
+- Blocking errors now appear before warnings and include their own visible count.
+- Warnings remain visible but are capped separately after errors so expected ignored Open Long/Open Short/non-filled rows do not bury fix-required rows.
+- Kept the hidden-count message for both error and warning groups.
+- Confirm Import remains disabled only when `tradeLedgerImportResult.ok` is false; the parser already treats warnings-only imports as `ok: true`.
+- Did not change parser validation rules, accepted closed-trade rules, trade calculations, account equity import, storage boundaries, or dashboard layout.
+
+## Exact Duplicate Trade Ledger Row Handling - 2026-05-04
+
+- Changed exact duplicate close-trade rows from blocking errors into skipped warnings for the MVP exchange CSV workflow.
+- Duplicate detection now includes optional export fields such as margin mode, leverage, amount, order price, and filled quantity asset so non-identical or ambiguous close rows are not auto-deduped.
+- Duplicate skipped rows are not added to imported records and do not affect trade count, gross closing PNL, fees, net realized PNL, win rate, averages, profit factor, symbol breakdown, or direction breakdown.
+- Duplicate skipped rows increment the import summary skipped-row count and emit a warning that identifies the first matching row number.
+- Warnings-only duplicate imports keep `result.ok` true, so Confirm Import remains enabled.
+- Updated exchange trade ledger parser tests for duplicate warnings, skipped-row counts, accepted closed-trade counts, metric totals, and optional-field non-deduping.
+
 ## Next Steps
 
 - Expand tests beyond the performance import/calculation layer into storage validators, route fallback behavior, and view-model adapters before broadening source inputs further.
