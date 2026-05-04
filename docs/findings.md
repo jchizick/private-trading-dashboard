@@ -1664,3 +1664,28 @@ Sample reviewed terminal values from the verification run:
 ### Remaining Untested Areas
 
 - API route fallback behavior, server cache behavior, provider fetch failure branches, browser localStorage save/load paths, and component hydration behavior remain outside this pure-normalization test pass.
+
+## API Route Fallback Testing Foundation Findings - 2026-05-04
+
+### Fear & Greed Route Coverage
+
+- Added `src/app/api/fear-greed/route.test.ts` for direct `GET` handler coverage.
+- Tests cover missing `CMC_API_KEY` with no cache, successful CMC response normalization, stale server-cache fallback after provider failure, CMC rate-limit status handling, and invalid CMC payload handling.
+- The stale-cache test forces module cache expiry with fake timers so it exercises the fallback branch instead of fresh-cache short-circuit behavior.
+
+### Market Quote Route Coverage
+
+- Added `src/app/api/market-quotes/route.test.ts` for direct `GET` handler coverage.
+- Tests cover missing `FMP_API_KEY` and `TWELVE_DATA_API_KEY`, mixed provider success, symbol-keyed quote-map shape, SPX fallback from FMP `ESUSD` to FMP `^GSPC`, XAU fallback from Twelve Data `XAU/USD` to FMP `GCUSD`, stale server-cache fallback after total provider failure, and partial provider failure.
+- The market stale-cache test advances past the active-hours TTL and confirms previously live rows return as `cached` while static `WTI` and `DXY` rows remain `unavailable`.
+
+### Isolation And Provider Safety
+
+- Tests use `vi.resetModules()` before fresh route imports to prevent module-level in-memory caches from leaking across unrelated cases.
+- Tests set only the needed provider environment variables and restore previous `process.env` values after each case.
+- `global.fetch` is mocked for every provider path; no CoinMarketCap, Financial Modeling Prep, or Twelve Data network requests are made.
+
+### Fixes And Remaining Gaps
+
+- No production route behavior bugs were found during this slice, so no route code changes were needed.
+- Remaining live-data test gaps are browser localStorage save/load paths and component hydration behavior.

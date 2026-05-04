@@ -655,9 +655,20 @@
 - Patched `isMarketQuotesFetchResult` to reject quote arrays; route results must provide a symbol-keyed quote map.
 - `npm run test` passed with 8 test files and 105 tests.
 
+## API Route Fallback Testing Foundation - 2026-05-04
+
+- Added focused direct route-handler tests for `GET /api/fear-greed` in `src/app/api/fear-greed/route.test.ts`.
+- Fear & Greed route tests cover missing `CMC_API_KEY`, successful CMC normalization, stale server-cache fallback after provider failure, CMC 429 behavior, and invalid CMC payload behavior.
+- Added focused direct route-handler tests for `GET /api/market-quotes` in `src/app/api/market-quotes/route.test.ts`.
+- Market quote route tests cover missing market quote API keys, mixed FMP/Twelve success, SPX fallback from FMP `ESUSD` to `^GSPC`, XAU fallback from Twelve `XAU/USD` to FMP `GCUSD`, stale server-cache fallback after total provider failure, and partial provider failure.
+- Route cache isolation is handled with `vi.resetModules()` before fresh route imports, plus controlled fake timers where cache expiry must be forced.
+- Provider calls are fully mocked through `global.fetch`; no CoinMarketCap, FMP, or Twelve Data calls are made by the tests.
+- No route behavior bugs were found, so no production route code changed.
+- `npm run test` passed with 10 test files and 116 tests.
+
 ## Next Steps
 
-- Expand tests beyond pure import/calculation/normalization helpers into route fallback behavior and view-model adapters before broadening source inputs further.
+- Expand tests into browser localStorage save/load paths, component hydration behavior, and view-model adapters before broadening source inputs further.
 - Add an explicit market snapshot capture action later if saved daily SPX/watchlist reads become useful.
 - Consider another provider or plan change only if live `WTI` or `DXY` become necessary.
 - Consider adding Total Fees and Net Realized PnL to the compact Trade Ledger display model if the panel needs those values outside the import preview.
