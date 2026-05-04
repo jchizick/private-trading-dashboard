@@ -89,21 +89,6 @@ function getFreshCachedResult() {
   };
 }
 
-function getStaticUnavailableQuotes() {
-  return {
-    WTI: createUnavailableMarketQuote({
-      displaySymbol: "WTI",
-      label: "WTI",
-      message: "Live WTI is unavailable on the current FMP and Twelve Data plans."
-    }),
-    DXY: createUnavailableMarketQuote({
-      displaySymbol: "DXY",
-      label: "DXY",
-      message: "Live DXY is unavailable on the current FMP and Twelve Data plans."
-    })
-  };
-}
-
 function getAllUnavailableQuotes(message: string) {
   return {
     SPX500: createUnavailableMarketQuote({
@@ -116,9 +101,14 @@ function getAllUnavailableQuotes(message: string) {
       label: "XAU/USD",
       message
     }),
-    BTCUSDT: createUnavailableMarketQuote({
-      displaySymbol: "BTCUSDT",
-      label: "BTC/USDT",
+    VIX: createUnavailableMarketQuote({
+      displaySymbol: "VIX",
+      label: "VIX",
+      message
+    }),
+    EURUSD: createUnavailableMarketQuote({
+      displaySymbol: "EURUSD",
+      label: "EUR/USD",
       message
     }),
     CADUSD: createUnavailableMarketQuote({
@@ -126,7 +116,11 @@ function getAllUnavailableQuotes(message: string) {
       label: "CAD/USD",
       message
     }),
-    ...getStaticUnavailableQuotes()
+    BTCUSDT: createUnavailableMarketQuote({
+      displaySymbol: "BTCUSDT",
+      label: "BTC/USDT",
+      message
+    })
   };
 }
 
@@ -414,6 +408,26 @@ async function fetchBtcQuote({
     });
 }
 
+async function fetchVixQuote(fmpApiKey: string | undefined) {
+  return getFmpQuoteOrMissing({
+    apiKey: fmpApiKey,
+    displaySymbol: "VIX",
+    providerSymbol: "^VIX",
+    label: "VIX",
+    sourceLabel: "CBOE Volatility Index"
+  });
+}
+
+async function fetchEurUsdQuote(fmpApiKey: string | undefined) {
+  return getFmpQuoteOrMissing({
+    apiKey: fmpApiKey,
+    displaySymbol: "EURUSD",
+    providerSymbol: "EURUSD",
+    label: "EUR/USD",
+    sourceLabel: "EUR/USD forex"
+  });
+}
+
 async function fetchCadQuote(twelveApiKey: string | undefined) {
   const cadQuote = await getTwelveQuoteOrMissing({
     apiKey: twelveApiKey,
@@ -439,19 +453,22 @@ async function fetchLiveQuotes({
   fmpApiKey: string | undefined;
   twelveApiKey: string | undefined;
 }) {
-  const [spxQuote, goldQuote, btcQuote, cadQuote] = await Promise.all([
+  const [spxQuote, goldQuote, vixQuote, eurUsdQuote, cadQuote, btcQuote] = await Promise.all([
     fetchSpxQuote(fmpApiKey),
     fetchGoldQuote({ fmpApiKey, twelveApiKey }),
-    fetchBtcQuote({ fmpApiKey, twelveApiKey }),
-    fetchCadQuote(twelveApiKey)
+    fetchVixQuote(fmpApiKey),
+    fetchEurUsdQuote(fmpApiKey),
+    fetchCadQuote(twelveApiKey),
+    fetchBtcQuote({ fmpApiKey, twelveApiKey })
   ]);
 
   return {
     SPX500: spxQuote,
     XAUUSD: goldQuote,
-    BTCUSDT: btcQuote,
+    VIX: vixQuote,
+    EURUSD: eurUsdQuote,
     CADUSD: cadQuote,
-    ...getStaticUnavailableQuotes()
+    BTCUSDT: btcQuote
   };
 }
 

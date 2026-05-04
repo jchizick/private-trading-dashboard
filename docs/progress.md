@@ -677,11 +677,21 @@
 - No storage behavior bugs were found, so no production storage code changed.
 - `npm run test` passed with 14 test files and 150 tests.
 
+## VIX And EURUSD Watchlist Replacement - 2026-05-04
+
+- Replaced the market quote route's static unavailable `WTI` and `DXY` rows with live FMP-backed `VIX` and `EURUSD` rows.
+- `VIX` now uses verified FMP `^VIX`; `EURUSD` now uses verified FMP `EURUSD`.
+- The updated watchlist order is `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT`.
+- Preserved existing live rows and fallback behavior for `SPX500`, `XAUUSD`, `CADUSD`, and `BTCUSDT`.
+- Preserved server-side API key handling, server cache behavior, browser stale-cache compatibility, and `DailyDashboardSnapshot` separation.
+- Updated market quote route tests for the new symbol map, live rows, and stale-cache downgrade behavior.
+- No UI redesign, dependencies, websocket feed, candle/chart data, Performance Review, Fear & Greed, Gamma, or Trading Context changes were added.
+- `npm run test` passed with 14 test files and 150 tests.
+
 ## Next Steps
 
 - Expand tests into component hydration behavior and view-model adapters before broadening source inputs further.
 - Add an explicit market snapshot capture action later if saved daily SPX/watchlist reads become useful.
-- Consider another provider or plan change only if live `WTI` or `DXY` become necessary.
 - Consider adding Total Fees and Net Realized PnL to the compact Trade Ledger display model if the panel needs those values outside the import preview.
 - Consider a fuller import history/clear confirmation flow after the MVP import path proves useful.
 - Choose private persistence strategy for manual notes and context snapshots.

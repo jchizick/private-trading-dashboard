@@ -103,6 +103,8 @@ function successfulProviderResponses(): ProviderResponseMap {
   return {
     [providerKey("fmp", "ESUSD")]: { body: fmpQuote("ESUSD", 5234.56) },
     [providerKey("twelve", "XAU/USD")]: { body: twelveQuote("XAU/USD", 2335.5) },
+    [providerKey("fmp", "^VIX")]: { body: fmpQuote("^VIX", 17.43) },
+    [providerKey("fmp", "EURUSD")]: { body: fmpQuote("EURUSD", 1.17133) },
     [providerKey("fmp", "BTCUSD")]: { body: fmpQuote("BTCUSD", 65000) },
     [providerKey("twelve", "CAD/USD")]: { body: twelveQuote("CAD/USD", 0.73) }
   };
@@ -146,7 +148,7 @@ describe("GET /api/market-quotes fallback behavior", () => {
     expect(result.ok).toBe(false);
     expect(result.error).toBe("missing_market_quote_api_keys");
     expect(Array.isArray(result.quotes)).toBe(false);
-    expect(Object.keys(result.quotes).sort()).toEqual(["BTCUSDT", "CADUSD", "DXY", "SPX500", "WTI", "XAUUSD"]);
+    expect(Object.keys(result.quotes).sort()).toEqual(["BTCUSDT", "CADUSD", "EURUSD", "SPX500", "VIX", "XAUUSD"]);
     expect(Object.values(result.quotes).every((quote) => quote.status === "unavailable")).toBe(true);
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -164,10 +166,10 @@ describe("GET /api/market-quotes fallback behavior", () => {
     expect(Array.isArray(result.quotes)).toBe(false);
     expect(result.quotes.SPX500).toMatchObject({ provider: "fmp", providerSymbol: "ESUSD", status: "live" });
     expect(result.quotes.XAUUSD).toMatchObject({ provider: "twelve", providerSymbol: "XAU/USD", status: "live" });
-    expect(result.quotes.BTCUSDT).toMatchObject({ provider: "fmp", providerSymbol: "BTCUSD", status: "live" });
+    expect(result.quotes.VIX).toMatchObject({ provider: "fmp", providerSymbol: "^VIX", status: "live" });
+    expect(result.quotes.EURUSD).toMatchObject({ provider: "fmp", providerSymbol: "EURUSD", status: "live" });
     expect(result.quotes.CADUSD).toMatchObject({ provider: "twelve", providerSymbol: "CAD/USD", status: "live" });
-    expect(result.quotes.WTI).toMatchObject({ provider: "mock", status: "unavailable" });
-    expect(result.quotes.DXY).toMatchObject({ provider: "mock", status: "unavailable" });
+    expect(result.quotes.BTCUSDT).toMatchObject({ provider: "fmp", providerSymbol: "BTCUSD", status: "live" });
   });
 
   it("falls back from FMP ESUSD to FMP ^GSPC for SPX500", async () => {
@@ -229,6 +231,14 @@ describe("GET /api/market-quotes fallback behavior", () => {
         { body: { status: "error", message: "failed" }, status: 502 }
       ],
       [providerKey("fmp", "GCUSD")]: { body: { error: "failed" }, status: 502 },
+      [providerKey("fmp", "^VIX")]: [
+        { body: fmpQuote("^VIX", 17.43) },
+        { body: { error: "failed" }, status: 502 }
+      ],
+      [providerKey("fmp", "EURUSD")]: [
+        { body: fmpQuote("EURUSD", 1.17133) },
+        { body: { error: "failed" }, status: 502 }
+      ],
       [providerKey("fmp", "BTCUSD")]: [
         { body: fmpQuote("BTCUSD", 65000) },
         { body: { error: "failed" }, status: 502 }
@@ -255,11 +265,11 @@ describe("GET /api/market-quotes fallback behavior", () => {
     expect(staleResult.stale).toBe(true);
     expect(staleResult.quotes.SPX500.status).toBe("cached");
     expect(staleResult.quotes.XAUUSD.status).toBe("cached");
-    expect(staleResult.quotes.BTCUSDT.status).toBe("cached");
+    expect(staleResult.quotes.VIX.status).toBe("cached");
+    expect(staleResult.quotes.EURUSD.status).toBe("cached");
     expect(staleResult.quotes.CADUSD.status).toBe("cached");
-    expect(staleResult.quotes.WTI.status).toBe("unavailable");
-    expect(staleResult.quotes.DXY.status).toBe("unavailable");
-    expect(fetchMock).toHaveBeenCalledTimes(11);
+    expect(staleResult.quotes.BTCUSDT.status).toBe("cached");
+    expect(fetchMock).toHaveBeenCalledTimes(15);
   });
 
   it("returns partial success when one provider-backed quote fails and others remain live", async () => {
@@ -279,7 +289,9 @@ describe("GET /api/market-quotes fallback behavior", () => {
     expect(result.error).toBe("partial_market_quote_failure");
     expect(result.quotes.SPX500).toMatchObject({ provider: "fmp", status: "error" });
     expect(result.quotes.XAUUSD.status).toBe("live");
-    expect(result.quotes.BTCUSDT.status).toBe("live");
+    expect(result.quotes.VIX.status).toBe("live");
+    expect(result.quotes.EURUSD.status).toBe("live");
     expect(result.quotes.CADUSD.status).toBe("live");
+    expect(result.quotes.BTCUSDT.status).toBe("live");
   });
 });

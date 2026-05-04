@@ -23,8 +23,8 @@ interface MarketSituationModuleProps {
 const marketWatchlist = [
   { symbol: "SPX500", last: "5,148.21", change: "+18.40", changePercent: "+0.36%", volume: "2.1B" },
   { symbol: "XAUUSD", last: "2,331.80", change: "-6.20", changePercent: "-0.27%", volume: "184K" },
-  { symbol: "WTI", last: "78.42", change: "+0.54", changePercent: "+0.69%", volume: "312K" },
-  { symbol: "DXY", last: "104.68", change: "-0.12", changePercent: "-0.11%", volume: "96K" },
+  { symbol: "VIX", last: "17.43", change: "+0.44", changePercent: "+2.59%", volume: "0" },
+  { symbol: "EURUSD", last: "1.1713", change: "-0.0008", changePercent: "-0.07%", volume: "108K" },
   { symbol: "CADUSD", last: "0.7312", change: "+0.0018", changePercent: "+0.25%", volume: "41K" },
   { symbol: "BTCUSDT", last: "64,820.50", change: "+410.20", changePercent: "+0.64%", volume: "38K" }
 ] as const;
@@ -124,8 +124,12 @@ function getCompactSourceLabel(quote: MarketQuote | undefined) {
     return quote.provider === "twelve" ? "spot" : "futures";
   }
 
-  if (quote.displaySymbol === "CADUSD") {
+  if (quote.displaySymbol === "CADUSD" || quote.displaySymbol === "EURUSD") {
     return "forex";
+  }
+
+  if (quote.displaySymbol === "VIX") {
+    return "vol";
   }
 
   if (quote.displaySymbol === "SPX500" && quote.providerSymbol === "^GSPC") {

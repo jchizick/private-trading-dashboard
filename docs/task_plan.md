@@ -79,8 +79,12 @@
 - [x] Update market quote provider map after Twelve Data verification.
 - [x] Integrate Twelve Data into `/api/market-quotes` for `XAUUSD`, `CADUSD`, and BTC fallback.
 - [x] Audit and stabilize mixed-provider market quote integration.
+- [x] Verify FMP `VIX` and `EURUSD` symbols before market quote wiring.
+- [x] Replace `WTI` and `DXY` with `VIX` and `EURUSD` after verification.
 - [ ] Add explicit daily market snapshot capture behavior after live display is stable.
 - [ ] Integrate chart/embed source after provider choice.
+- [ ] Plan FMP Economic Calendar integration for Trading Context.
+- [ ] Later investigate FMP chart/candle APIs for possible SPX context support.
 - [ ] Integrate gamma image/levels provider or upload workflow after manual gamma state exists.
 - [x] Integrate Fear & Greed source through server-side CoinMarketCap proxy with mock/stale fallback.
 - [ ] Integrate market news and economic calendar sources after provider choice.

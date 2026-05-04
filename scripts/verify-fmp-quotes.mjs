@@ -3,9 +3,15 @@ import path from "node:path";
 import process from "node:process";
 
 const FMP_QUOTE_ENDPOINT = "https://financialmodelingprep.com/stable/quote";
-const SYMBOLS_TO_VERIFY = Array.from(
+const DEFAULT_SYMBOLS_TO_VERIFY = Array.from(
   new Set(["^GSPC", "ESUSD", "GCUSD", "CLUSD", "DXUSD", "CADUSD", "BTCUSD"])
 );
+
+function getSymbolsToVerify() {
+  const cliSymbols = process.argv.slice(2).map((symbol) => symbol.trim()).filter(Boolean);
+
+  return Array.from(new Set(cliSymbols.length > 0 ? cliSymbols : DEFAULT_SYMBOLS_TO_VERIFY));
+}
 
 function readEnvFile(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -179,11 +185,13 @@ async function main() {
 
   console.log("FMP quote verification");
   console.log("Read-only terminal output only. No quote data will be written to files, caches, or localStorage.");
-  console.log(`Symbols: ${SYMBOLS_TO_VERIFY.join(", ")}`);
+  const symbolsToVerify = getSymbolsToVerify();
+
+  console.log(`Symbols: ${symbolsToVerify.join(", ")}`);
 
   const results = [];
 
-  for (const symbol of SYMBOLS_TO_VERIFY) {
+  for (const symbol of symbolsToVerify) {
     const result = await verifySymbol(symbol, apiKey.trim());
     results.push(result);
   }

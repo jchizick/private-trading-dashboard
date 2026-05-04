@@ -234,13 +234,10 @@ Supported live symbol map:
 
 - `SPX500`: FMP `ESUSD` primary, FMP `^GSPC` fallback.
 - `XAUUSD`: Twelve Data `XAU/USD` primary, FMP `GCUSD` fallback.
-- `BTCUSDT`: FMP `BTCUSD` primary, Twelve Data `BTC/USD` fallback.
+- `VIX`: FMP `^VIX`.
+- `EURUSD`: FMP `EURUSD`.
 - `CADUSD`: Twelve Data `CAD/USD`.
-
-Unavailable/mock symbols:
-
-- `WTI`: unavailable/mock for MVP.
-- `DXY`: unavailable/mock for MVP.
+- `BTCUSDT`: FMP `BTCUSD` primary, Twelve Data `BTC/USD` fallback.
 
 Cache and fallback:
 
@@ -280,7 +277,6 @@ Server memory caches:
 - No exchange API integration.
 - No XLSX import.
 - No Gamma screenshot upload, OCR, source URL workflow, or X/Twitter scraping.
-- No WTI or DXY live data.
 - No websocket feed.
 - No real candle/chart feed.
 - No explicit daily market snapshot capture yet.
@@ -293,6 +289,5 @@ Server memory caches:
 2. Add explicit daily market snapshot capture for point-in-time market and sentiment reads.
 3. Add Supabase persistence and authentication.
 4. Add Google Sheets sync for account equity history.
-5. Add WTI/DXY provider coverage if those rows become important.
-6. Add Gamma screenshot/source URL workflow after manual Gamma entry remains stable.
-7. Add deployment hardening: pinned dependencies, audit resolution, environment checks, and production runtime notes.
+5. Add Gamma screenshot/source URL workflow after manual Gamma entry remains stable.
+6. Add deployment hardening: pinned dependencies, audit resolution, environment checks, and production runtime notes.

@@ -1717,3 +1717,87 @@ Sample reviewed terminal values from the verification run:
 
 - No production storage behavior bugs were found during this slice, so no storage code changes were needed.
 - The remaining documented test gap is component hydration behavior for live-data modules.
+
+## Market Data Roadmap Adjustment Findings - 2026-05-04
+
+### Planned Watchlist Replacement
+
+- Before deployment hardening, the planned market quote watchlist should move away from the current unavailable `WTI` and `DXY` placeholders.
+- Proposed future watchlist order: `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT`.
+- `VIX` should replace `WTI` because volatility/risk context is more useful to the MVP dashboard than an oil row that remains blocked or unavailable on current provider checks.
+- `EURUSD` should replace `DXY` because it can provide a practical USD/macro proxy if FMP verifies cleanly, while prior DXY checks did not produce a usable MVP feed.
+
+### Required FMP Verification
+
+- Do not wire `VIX` or `EURUSD` into `/api/market-quotes` until their FMP quote symbols are verified with the API.
+- Candidate symbols may include `^VIX`, `VIX`, and `EURUSD`, but these are only candidates and should not be treated as provider mappings until verified.
+- The existing `scripts/verify-fmp-quotes.mjs` should be reused or safely extended in a later verification task; this roadmap note does not run FMP verification and does not change the script.
+
+### Future FMP Integrations
+
+- FMP's Economic Data Releases Calendar API is a future candidate for the Trading Context Economic Calendar column.
+- Economic Calendar integration should remain future work until the live market quote watchlist is verified and deployment hardening priorities are clear.
+- FMP End of Day and Intraday chart APIs are later research candidates for SPX context, but no chart/candle feed should be implemented now.
+- The SPX module should remain a high-level market context module for the MVP, not a full charting-platform replacement.
+
+### Boundaries
+
+- No UI, `/api/market-quotes`, provider normalization, environment variable, dependency, verification script, or `DailyDashboardSnapshot` changes were made for this roadmap documentation step.
+- The current MVP watchlist remains unchanged until a later approved implementation task.
+
+## FMP VIX And EURUSD Verification Findings - 2026-05-04
+
+### Script Update
+
+- Safely extended `scripts/verify-fmp-quotes.mjs` so it accepts optional command-line symbols while preserving the original default verification set.
+- The verifier remains read-only terminal output only: it reads the server-side `FMP_API_KEY`, does not print the key, and does not write quote data to files, caches, localStorage, routes, or UI code.
+
+### Verification Command
+
+- Ran `node scripts\verify-fmp-quotes.mjs ^VIX VIX EURUSD EUR/USD`.
+- No dashboard wiring, `/api/market-quotes` change, `MarketSituationModule` change, `DailyDashboardSnapshot` change, dependency change, or client-side key exposure was made.
+
+### Verified FMP Results
+
+| Display Use | Candidate Symbol | Result | Observed Fields | Notes |
+| --- | --- | --- | --- | --- |
+| Volatility index | `^VIX` | Works | price `17.43`, change `0.44`, change % `2.58976`, volume `0`, asOf `2026-05-04T14:02:46.000Z`, name `CBOE Volatility Index` | Recommended provider symbol for the planned `VIX` display row. |
+| Volatility index | `VIX` | Blocked | HTTP 402 Payment Required | Current FMP plan does not include this plain symbol candidate. |
+| EUR/USD forex | `EURUSD` | Works | price `1.17133`, change `-0.00079`, change % `-0.06739924`, volume `108475`, asOf `2026-05-04T14:02:56.000Z`, name `EUR/USD` | Recommended provider symbol for the planned `EURUSD` display row. |
+| EUR/USD forex | `EUR/USD` | Blocked | HTTP 402 Payment Required | Current FMP plan does not include this slash-form symbol candidate. |
+
+### Recommendation
+
+- Use FMP `^VIX` for the planned `VIX` display row.
+- Use FMP `EURUSD` for the planned `EURUSD` display row.
+- Keep `VIX` and `EUR/USD` out of the route because they returned plan restriction responses on the current key.
+- Do not replace `WTI` and `DXY` in the dashboard until a separate approved implementation task wires and tests the new route/UI behavior.
+
+## VIX And EURUSD Market Quote Integration Findings - 2026-05-04
+
+### Provider Map
+
+- Replaced `WTI` and `DXY` in `/api/market-quotes` with the verified replacement rows.
+- `VIX` uses FMP `^VIX` with label `VIX` and source label `CBOE Volatility Index`.
+- `EURUSD` uses FMP `EURUSD` with label `EUR/USD` and source label `EUR/USD forex`.
+- The returned quote map now uses the watchlist order `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT`.
+- Existing rows remain unchanged: `SPX500` uses FMP `ESUSD` with FMP `^GSPC` fallback, `XAUUSD` uses Twelve Data `XAU/USD` with FMP `GCUSD` fallback, `CADUSD` uses Twelve Data `CAD/USD`, and `BTCUSDT` uses FMP `BTCUSD` with Twelve Data `BTC/USD` fallback.
+
+### Client Display
+
+- `MarketSituationModule` now renders local fallback rows for `VIX` and `EURUSD` instead of `WTI` and `DXY`.
+- The watchlist remains the same compact table; no layout redesign or new UI surface was added.
+- Row metadata labels classify `VIX` as `vol` and `EURUSD` as `forex` when live or cached quote data is present.
+
+### Cache And Compatibility
+
+- Server-side API key safety is preserved; `FMP_API_KEY` and `TWELVE_DATA_API_KEY` remain route-only.
+- Server memory cache behavior and stale-cache fallback behavior are unchanged.
+- Browser stale-cache validation remains symbol-map agnostic, so older cached payloads remain safe to load while the component now reads only the current watchlist symbols.
+- No market quote data is written into `DailyDashboardSnapshot`.
+
+### Tests And Boundaries
+
+- Updated market quote route tests for missing-key unavailable maps, mixed provider success, stale server-cache fallback, and partial provider failure with `VIX` and `EURUSD`.
+- No normalization helper behavior changes were needed.
+- No Performance Review, Fear & Greed, Gamma, Trading Context, websocket, candle/chart, dependency, or provider-key behavior changes were made.
