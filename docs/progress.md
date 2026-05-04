@@ -666,9 +666,20 @@
 - No route behavior bugs were found, so no production route code changed.
 - `npm run test` passed with 10 test files and 116 tests.
 
+## Browser Storage Testing Foundation - 2026-05-04
+
+- Added a small Node-friendly localStorage test double in `src/test/localStorageMock.ts`; no jsdom dependency or Vitest environment change was needed.
+- Added Fear & Greed browser cache tests covering save/load, missing key, malformed JSON, invalid shape rejection, clearing, unavailable localStorage guards, and the `market-command:fear-greed-cache` key.
+- Expanded market quote storage tests to cover save/load, missing key, malformed JSON, invalid payload rejection, symbol-keyed quote-map enforcement, unsupported status rejection, clearing, unavailable localStorage guards, and the `market-command:market-quotes-cache` key.
+- Added daily snapshot storage tests covering save/load by trading date, `market-command:daily-snapshot:${date}` key format, legacy gamma `levels[]` normalization, trading-date mismatch rejection, malformed JSON, saved-date listing for matching keys only, and unavailable localStorage guards.
+- Added account equity storage tests covering imported history save/load, date sorting, malformed JSON, legacy `percentChange` migration into `cumulativeReturnPercent`, import summary save/load validation, clearing both history and summary keys, unavailable localStorage guards, and the account equity storage keys.
+- Added exchange trade ledger storage tests covering imported ledger save/load, time sorting, malformed JSON, invalid record rejection, import summary save/load validation, clearing both ledger and summary keys, unavailable localStorage guards, and the exchange trade ledger storage keys.
+- No storage behavior bugs were found, so no production storage code changed.
+- `npm run test` passed with 14 test files and 150 tests.
+
 ## Next Steps
 
-- Expand tests into browser localStorage save/load paths, component hydration behavior, and view-model adapters before broadening source inputs further.
+- Expand tests into component hydration behavior and view-model adapters before broadening source inputs further.
 - Add an explicit market snapshot capture action later if saved daily SPX/watchlist reads become useful.
 - Consider another provider or plan change only if live `WTI` or `DXY` become necessary.
 - Consider adding Total Fees and Net Realized PnL to the compact Trade Ledger display model if the panel needs those values outside the import preview.

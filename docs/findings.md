@@ -1688,4 +1688,32 @@ Sample reviewed terminal values from the verification run:
 ### Fixes And Remaining Gaps
 
 - No production route behavior bugs were found during this slice, so no route code changes were needed.
-- Remaining live-data test gaps are browser localStorage save/load paths and component hydration behavior.
+- At this checkpoint, remaining live-data test gaps were browser localStorage save/load paths and component hydration behavior.
+
+## Browser Storage Testing Foundation Findings - 2026-05-04
+
+### Test Environment Strategy
+
+- Added `src/test/localStorageMock.ts` as a minimal in-memory `Storage` implementation for Node-based Vitest tests.
+- The suite continues to use the existing Node Vitest environment; no jsdom dependency or config change was added.
+- Storage-unavailable behavior is tested by removing the mocked `window`, matching the helpers' existing `canUseLocalStorage` guard behavior.
+
+### Live Data Browser Cache Coverage
+
+- `src/lib/fearGreedStorage.test.ts` covers `market-command:fear-greed-cache` save/load, missing key, malformed JSON, invalid snapshot shape, clearing, and unavailable localStorage guards.
+- `src/lib/marketQuoteStorage.test.ts` now also covers `market-command:market-quotes-cache` save/load, missing key, malformed JSON, invalid route payload shape, symbol-keyed quote-map enforcement, unsupported status rejection, clearing, and unavailable localStorage guards.
+
+### Daily Snapshot Storage Coverage
+
+- `src/lib/dailySnapshotStorage.test.ts` covers `market-command:daily-snapshot:${date}` save/load, storage key format, malformed JSON fallback, trading-date mismatch rejection, date listing from matching snapshot keys only, and unavailable localStorage guards.
+- The daily snapshot storage tests also verify that loaded legacy Gamma snapshots with `levels[]` normalize into named `majorPositiveGamma`, `majorNegativeGamma`, and `zeroGamma` fields.
+
+### Performance Source Storage Coverage
+
+- `src/lib/accountEquityStorage.test.ts` covers `market-command:account-equity-history` and `market-command:account-equity-history:import-summary` save/load behavior, malformed JSON handling, summary validation, clearing both keys, unavailable localStorage guards, and old `percentChange` record migration to `cumulativeReturnPercent`.
+- `src/lib/exchangeTradeLedgerStorage.test.ts` covers `market-command:exchange-trade-ledger` and `market-command:exchange-trade-ledger:import-summary` save/load behavior, malformed JSON handling, invalid record rejection, summary validation, clearing both keys, and unavailable localStorage guards.
+
+### Fixes And Remaining Gaps
+
+- No production storage behavior bugs were found during this slice, so no storage code changes were needed.
+- The remaining documented test gap is component hydration behavior for live-data modules.

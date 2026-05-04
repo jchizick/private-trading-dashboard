@@ -97,6 +97,7 @@
 - [x] Allow exact duplicate exchange close rows to skip with warnings.
 - [x] Add live data normalization and market quote validator tests.
 - [x] Add API route fallback behavior tests for Fear & Greed and market quotes.
-- [ ] Add browser cache save/load path tests for live data.
+- [x] Add browser cache save/load path tests for live data.
+- [x] Add localStorage helper tests for daily snapshots and imported performance sources.
 - [ ] Add component hydration behavior tests for live data modules.
 - [ ] Add smoke tests or component tests once interactive workflows begin.
