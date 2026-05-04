@@ -59,6 +59,7 @@ export function isMarketQuotesFetchResult(value: unknown): value is MarketQuotes
     typeof result.ok === "boolean" &&
     !!result.quotes &&
     typeof result.quotes === "object" &&
+    !Array.isArray(result.quotes) &&
     typeof result.stale === "boolean" &&
     (result.source === "Financial Modeling Prep" || result.source === "Financial Modeling Prep + Twelve Data") &&
     typeof result.updatedAt === "string" &&

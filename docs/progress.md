@@ -643,9 +643,21 @@
 - Warnings-only duplicate imports keep `result.ok` true, so Confirm Import remains enabled.
 - Updated exchange trade ledger parser tests for duplicate warnings, skipped-row counts, accepted closed-trade counts, metric totals, and optional-field non-deduping.
 
+## Live Data Normalization Testing Foundation - 2026-05-04
+
+- Added focused Fear & Greed normalization coverage in `src/lib/fearGreedNormalization.test.ts`.
+- Fear & Greed tests cover valid CMC response normalization, sorting newest/oldest payloads, malformed reading skipping, numeric-string values, current clamping behavior, nearest last-week/last-month derivation, high/low derivation, short history behavior, and empty/malformed safe null results.
+- Added focused FMP quote normalization coverage in `src/lib/fmpQuoteNormalization.test.ts`.
+- FMP tests cover array/object payload parsing, valid quote mapping, numeric string parsing, `changesPercentage` and `changePercentage`, missing optional volume/timestamp fields, missing/invalid required price errors, unavailable fallback quote creation, and usability checks.
+- Added focused Twelve Data quote normalization coverage in `src/lib/twelveQuoteNormalization.test.ts`.
+- Twelve tests cover object payload parsing, valid quote mapping, numeric string parsing, `percent_change` and `percentChange`, missing optional volume/timestamp fields, passed-through provider labels, provider error payloads, and missing/invalid required close price errors.
+- Added pure market quote route-payload validator coverage in `src/lib/marketQuoteStorage.test.ts`.
+- Patched `isMarketQuotesFetchResult` to reject quote arrays; route results must provide a symbol-keyed quote map.
+- `npm run test` passed with 8 test files and 105 tests.
+
 ## Next Steps
 
-- Expand tests beyond the performance import/calculation layer into storage validators, route fallback behavior, and view-model adapters before broadening source inputs further.
+- Expand tests beyond pure import/calculation/normalization helpers into route fallback behavior and view-model adapters before broadening source inputs further.
 - Add an explicit market snapshot capture action later if saved daily SPX/watchlist reads become useful.
 - Consider another provider or plan change only if live `WTI` or `DXY` become necessary.
 - Consider adding Total Fees and Net Realized PnL to the compact Trade Ledger display model if the panel needs those values outside the import preview.

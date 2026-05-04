@@ -1641,3 +1641,26 @@ Sample reviewed terminal values from the verification run:
 
 - Account equity duplicate-date blocking was not changed.
 - Trade calculation formulas, accepted close-trade rules, open/non-filled warning behavior, and storage boundaries were not changed.
+
+## Live Data Normalization Testing Foundation Findings - 2026-05-04
+
+### Fear & Greed Coverage
+
+- `src/lib/fearGreedNormalization.test.ts` covers CMC response normalization into the dashboard `FearGreedSnapshot`, newest/oldest payload sorting, malformed reading skipping, numeric string support, current 0..100 clamping behavior, fallback classification derivation, nearest last-week/last-month selection, high/low derivation, short history behavior, and empty/malformed safe null results.
+
+### Market Quote Coverage
+
+- `src/lib/fmpQuoteNormalization.test.ts` covers FMP payload parsing, valid quote mapping, numeric string parsing, `changesPercentage` and `changePercentage`, missing optional volume/timestamp fields, missing/invalid price errors, unavailable fallback quote creation, and `isUsableMarketQuote`.
+- `src/lib/twelveQuoteNormalization.test.ts` covers Twelve Data payload parsing, valid quote mapping, numeric string parsing, `percent_change` and `percentChange`, missing optional volume/timestamp fields, passed-through labels for `XAU/USD`, `CAD/USD`, and `BTC/USD`, provider error payloads, and missing/invalid close price errors.
+
+### Runtime Validator Coverage
+
+- `src/lib/marketQuoteStorage.test.ts` covers the pure `isMarketQuotesFetchResult` validator for valid mixed-provider payloads, missing quote maps, quote arrays, invalid statuses, invalid numeric fields, invalid providers, invalid source labels, and invalid `updatedAt`.
+
+### Fixes Found During Test Setup
+
+- Patched `isMarketQuotesFetchResult` so `quotes` arrays are rejected. The app route contract is a symbol-keyed quote map, and accepting arrays would allow malformed successful route payloads into the browser stale cache.
+
+### Remaining Untested Areas
+
+- API route fallback behavior, server cache behavior, provider fetch failure branches, browser localStorage save/load paths, and component hydration behavior remain outside this pure-normalization test pass.

@@ -275,7 +275,7 @@ Server memory caches:
 
 - No Supabase or durable multi-device persistence.
 - No authentication.
-- Automated test coverage exists for account equity CSV import, equity return calculations, exchange trade ledger CSV import, and trade ledger calculations; broader module, storage, route, and integration tests are still pending.
+- Automated test coverage exists for account equity CSV import, equity return calculations, exchange trade ledger CSV import, trade ledger calculations, Fear & Greed normalization, FMP/Twelve quote normalization, and market quote payload validation; route fallback, storage, component, and integration tests are still pending.
 - No Google Sheets sync.
 - No exchange API integration.
 - No XLSX import.
@@ -289,7 +289,7 @@ Server memory caches:
 
 ## Recommended Roadmap
 
-1. Expand tests beyond performance import/calculation coverage to storage validators, view-model adapters, and API route fallback branches.
+1. Expand tests beyond pure import/calculation/normalization coverage to route fallback branches, storage save/load paths, component hydration, and view-model adapters.
 2. Add explicit daily market snapshot capture for point-in-time market and sentiment reads.
 3. Add Supabase persistence and authentication.
 4. Add Google Sheets sync for account equity history.
