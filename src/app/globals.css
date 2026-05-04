@@ -827,6 +827,103 @@ select {
   }
 }
 
+.loginScreen {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.loginPanel {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 380px);
+  padding: 22px;
+  border: 1px solid rgba(39, 55, 56, 0.96);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(54, 189, 126, 0.06), transparent 112px),
+    rgba(7, 13, 14, 0.98);
+  box-shadow: var(--shadow-tight);
+}
+
+.loginPanel__header {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+
+.loginPanel__header span,
+.loginPanel__field span {
+  color: rgba(95, 110, 105, 0.92);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.loginPanel__header h1 {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.loginPanel__field {
+  display: grid;
+  gap: 8px;
+}
+
+.loginPanel__field input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(42, 63, 59, 0.92);
+  border-radius: var(--radius);
+  outline: none;
+  background: rgba(5, 10, 11, 0.94);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+
+.loginPanel__field input:focus {
+  border-color: rgba(54, 189, 126, 0.62);
+  box-shadow: 0 0 0 2px rgba(54, 189, 126, 0.12);
+}
+
+.loginPanel__error {
+  margin: -2px 0 0;
+  color: var(--negative);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.loginPanel__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(54, 189, 126, 0.34);
+  border-radius: var(--radius);
+  background: rgba(54, 189, 126, 0.1);
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.loginPanel__button:hover,
+.loginPanel__button:focus-visible {
+  border-color: rgba(54, 189, 126, 0.62);
+  background: rgba(54, 189, 126, 0.16);
+  outline: none;
+}
+
 /* Targeted hierarchy refinement pass */
 .dashboardGrid {
   grid-template-columns: minmax(292px, 0.82fr) minmax(570px, 1.78fr) minmax(286px, 0.86fr);
