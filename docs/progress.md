@@ -603,9 +603,20 @@
 - Updated mock account equity fixture rows and handoff documentation to reflect cumulative-return semantics.
 - Verified `npm run build` passes after the fix.
 
+## Account Equity Testing Foundation - 2026-05-04
+
+- Added Vitest as the first automated test framework with the minimal `vitest.config.ts` needed for Node-based tests and `@/*` source alias resolution.
+- Added `npm run test` as `vitest run`.
+- Added focused account equity CSV parser coverage in `src/lib/accountEquityCsvImport.test.ts`.
+- Parser tests cover canonical import, ID/source/import timestamp assignment, cumulative-return mapping, legacy return aliases, explicit cumulative/total return aliases, equity parsing, percent parsing, blank rows, date validation, equity validation, cumulative-return validation, duplicate dates, out-of-order sorting, unexpected columns, and malformed unquoted comma rows.
+- Added focused account equity return calculation coverage in `src/lib/performanceReviewCalculations.test.ts`.
+- Calculation tests cover Daily return from latest versus previous equity, Weekly/Monthly/YTD return windows, account equity change, max drawdown, out-of-order input handling, and protection against imported cumulative-return values leaking into Daily.
+- Patched one parser alias gap found while writing tests: `Cumulative Return %` and `Total Return %` are now accepted as explicit cumulative/total return headers.
+- `npm run test` passed with 2 test files and 31 tests.
+
 ## Next Steps
 
-- Add tests around the pure Performance Review calculation and CSV parser helpers before broadening source inputs.
+- Expand tests beyond account equity into trade-ledger calculations, storage validators, route fallback behavior, and view-model adapters before broadening source inputs further.
 - Add an explicit market snapshot capture action later if saved daily SPX/watchlist reads become useful.
 - Consider another provider or plan change only if live `WTI` or `DXY` become necessary.
 - Consider adding Total Fees and Net Realized PnL to the compact Trade Ledger display model if the panel needs those values outside the import preview.

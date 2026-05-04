@@ -1555,3 +1555,28 @@ Sample reviewed terminal values from the verification run:
 
 - The observed example `292.81` to `291.79` now calculates Daily as roughly `-0.35%` instead of using the imported cumulative `192%`.
 - `npm run build` passed after the source model, parser, storage migration, calculation, fixture, and documentation updates.
+
+## Account Equity Testing Foundation Findings - 2026-05-04
+
+### Test Framework
+
+- Added Vitest as the first automated test framework.
+- Added `vitest.config.ts` with Node test environment and `@/*` alias support.
+- Added `npm run test` as the test command.
+
+### Parser Coverage
+
+- `src/lib/accountEquityCsvImport.test.ts` covers valid account equity CSV parsing, record IDs, `csv_import` source, shared `importedAt`, cumulative-return semantics, legacy header aliases, explicit cumulative/total return aliases, equity parsing, percent parsing, blank row skipping, date validation, equity validation, cumulative-return validation, duplicate date blocking, out-of-order row sorting, unexpected column warnings, and malformed unquoted comma rows.
+
+### Calculation Coverage
+
+- `src/lib/performanceReviewCalculations.test.ts` covers Daily, Weekly, Monthly, and YTD return derivation from equity values, account equity change via the view-model adapter, max drawdown, and out-of-order input handling.
+- The Daily test protects the real regression: imported cumulative values such as `192%` must not become the Daily card value.
+
+### Fixes Found During Test Setup
+
+- Added parser aliases for `Cumulative Return %` and `Total Return %`; their normalized headers include `%`, so they needed explicit support in addition to `cumulativeReturnPercent`, `totalReturnPercent`, `cumulativeReturn`, and `totalReturn`.
+
+### Verification
+
+- `npm run test` passed with 2 test files and 31 tests.

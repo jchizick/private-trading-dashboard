@@ -75,7 +75,9 @@ function getLogicalColumn(header: string): keyof ColumnIndexes | null {
 
   if (
     normalizedHeader === "cumulativereturnpercent" ||
+    normalizedHeader === "cumulativereturn%" ||
     normalizedHeader === "totalreturnpercent" ||
+    normalizedHeader === "totalreturn%" ||
     normalizedHeader === "totalreturn" ||
     normalizedHeader === "cumulativereturn" ||
     normalizedHeader === "percentchange" ||

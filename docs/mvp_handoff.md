@@ -59,6 +59,12 @@ Run production build verification:
 npm run build
 ```
 
+Run automated tests:
+
+```powershell
+npm run test
+```
+
 ## Environment Variables
 
 `.env.example` contains placeholders for:
@@ -269,7 +275,7 @@ Server memory caches:
 
 - No Supabase or durable multi-device persistence.
 - No authentication.
-- No tests or test runner.
+- Limited automated test coverage exists for account equity CSV import and equity return calculations; broader module, route, and integration tests are still pending.
 - No Google Sheets sync.
 - No exchange API integration.
 - No XLSX import.
@@ -283,7 +289,7 @@ Server memory caches:
 
 ## Recommended Roadmap
 
-1. Add tests for parsers, calculations, storage validators, and API route fallback branches.
+1. Expand tests beyond account equity to trade-ledger calculations, storage validators, and API route fallback branches.
 2. Add explicit daily market snapshot capture for point-in-time market and sentiment reads.
 3. Add Supabase persistence and authentication.
 4. Add Google Sheets sync for account equity history.

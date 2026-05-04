@@ -92,4 +92,5 @@
 - [ ] Replace `latest` dependency ranges with pinned compatible versions after stack policy is chosen.
 - [ ] Resolve or document npm audit findings.
 - [ ] Add lint/typecheck script behavior compatible with the installed Next version.
+- [x] Add account equity CSV parser and return calculation tests.
 - [ ] Add smoke tests or component tests once interactive workflows begin.

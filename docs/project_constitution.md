@@ -140,5 +140,5 @@
 - No broad validation layer exists; account equity CSV import has focused parser validation only.
 - SPX/watchlist live market quote UI hydration now exists, but explicit daily market snapshot capture has not been added yet.
 - No gamma image upload implementation exists.
-- No tests exist.
+- Vitest now covers account equity CSV import and account equity return calculations; broader test coverage is still pending.
 - Dependency ranges are not pinned.
