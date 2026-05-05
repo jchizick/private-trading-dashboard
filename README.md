@@ -68,6 +68,15 @@ Vercel is the assumed deployment target. Add `CMC_API_KEY`, `FMP_API_KEY`, `TWEL
 
 The current server memory caches are best-effort only and are not durable deployment storage. Browser localStorage remains the only persistence layer for the private MVP.
 
+## Security
+
+- App-level password protection is enabled via `DASHBOARD_PASSWORD`.
+- Auth uses the signed httpOnly cookie `trading_dashboard_auth`.
+- Anonymous users are redirected to `/login` before accessing dashboard routes.
+- Provider API keys remain server-side only and are stored in Vercel environment variables.
+- Production password protection was verified after the Vercel redeploy.
+- Supabase and external auth providers are intentionally deferred for a later phase.
+
 ## Private MVP Limitations
 
 - Minimal app-level password authentication only.

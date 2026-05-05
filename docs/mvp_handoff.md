@@ -85,6 +85,7 @@ npm run verify
 CMC_API_KEY=your_coinmarketcap_api_key_here
 FMP_API_KEY=your_financial_modeling_prep_api_key_here
 TWELVE_DATA_API_KEY=your_twelve_data_api_key_here
+DASHBOARD_PASSWORD=
 ```
 
 Rules:
@@ -93,6 +94,7 @@ Rules:
 - `CMC_API_KEY` is read only by `/api/fear-greed`.
 - `FMP_API_KEY` is read only by `/api/market-quotes`.
 - `TWELVE_DATA_API_KEY` is read only by `/api/market-quotes`.
+- `DASHBOARD_PASSWORD` powers the app-level password gate and must stay server-side.
 - Client components call internal app routes only; they do not call external providers directly.
 
 ## Deployment Notes
@@ -101,15 +103,30 @@ The assumed deployment target is Vercel.
 
 Before deploying:
 
-- Add `CMC_API_KEY`, `FMP_API_KEY`, and `TWELVE_DATA_API_KEY` in Vercel Project Settings.
+- Add `CMC_API_KEY`, `FMP_API_KEY`, `TWELVE_DATA_API_KEY`, and `DASHBOARD_PASSWORD` in Vercel Project Settings.
 - Set the keys for every environment you plan to use, including Production and Preview.
 - Redeploy after changing environment variables; existing deployments do not automatically receive changed values.
 - Keep provider keys server-side only. Do not create `NEXT_PUBLIC_` provider keys.
 - Run `npm run verify` locally before deployment.
 
+Current deployment status:
+
+- Production deployment is live on Vercel.
+- Vercel Standard Protection is enabled where available on the Hobby plan.
+- App-level password protection is active in production.
+- Anonymous production access is blocked and redirects to `/login`.
+
+Security:
+
+- App-level password protection is enabled via `DASHBOARD_PASSWORD`.
+- Auth uses the signed httpOnly cookie `trading_dashboard_auth`.
+- Anonymous users are redirected to `/login` before accessing dashboard routes.
+- Provider API keys remain server-side only and are stored in Vercel environment variables.
+- Production password protection was verified after the Vercel redeploy.
+- Supabase and external auth providers are intentionally deferred for a later phase.
+
 Deployment limitations:
 
-- The app currently has no authentication. Enable Vercel Deployment Protection or add a simple auth layer before public internet exposure.
 - Persistence is localStorage-only. Saved daily snapshots, imports, and browser caches are tied to the user's browser/device.
 - Server memory caches for `/api/fear-greed` and `/api/market-quotes` are best-effort and not durable storage. They can reset when the server process or deployment runtime resets.
 
@@ -301,6 +318,7 @@ Server memory caches:
 ## Dependency And Audit Status
 
 - Runtime package versions are pinned in `package.json` and `package-lock.json`.
+- `jsdom` is pinned as a dev-only dependency for focused DashboardShell hydration tests.
 - `npm audit --audit-level=moderate` currently reports 2 moderate PostCSS advisories through Next.
 - Do not run `npm audit fix --force`; npm reports that the force path would install an unsafe/breaking Next downgrade.
 - Revisit the audit through a compatible Next upgrade when a patched release path is available.
@@ -308,8 +326,9 @@ Server memory caches:
 ## Known Limitations
 
 - No Supabase or durable multi-device persistence.
-- No authentication.
-- Automated test coverage exists for account equity CSV import, equity return calculations, exchange trade ledger CSV import, trade ledger calculations, Fear & Greed normalization, FMP/Twelve quote normalization, market quote payload validation, API route fallback behavior, and localStorage/cache helper behavior; component hydration and broader integration tests are still pending.
+- Minimal app-level password authentication only; Supabase/Auth provider integration is deferred.
+- Automated test coverage exists for account equity CSV import, equity return calculations, exchange trade ledger CSV import, trade ledger calculations, Fear & Greed normalization, FMP/Twelve quote normalization, market quote payload validation, API route fallback behavior, localStorage/cache helper behavior, and integrated DashboardShell hydration behavior.
+- Broader component interaction tests and end-to-end smoke tests are still pending.
 - No Google Sheets sync.
 - No exchange API integration.
 - No XLSX import.
@@ -317,13 +336,11 @@ Server memory caches:
 - No websocket feed.
 - No real candle/chart feed.
 - No explicit daily market snapshot capture yet.
-- No public-access protection has been implemented yet.
 
 ## Recommended Roadmap
 
-1. Expand tests beyond import/calculation/normalization, route fallback, and storage-helper coverage to component hydration and view-model adapters.
+1. Expand tests beyond import/calculation/normalization, route fallback, storage-helper, and hydration coverage to focused interaction smoke tests and view-model adapters.
 2. Add explicit daily market snapshot capture for point-in-time market and sentiment reads.
 3. Add Supabase persistence and application authentication.
 4. Add Google Sheets sync for account equity history.
 5. Add Gamma screenshot/source URL workflow after manual Gamma entry remains stable.
-6. Add private access protection before public internet deployment.

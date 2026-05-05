@@ -693,13 +693,34 @@
 - Pinned package versions for Next, React, React DOM, TypeScript, Vitest, and related type packages to the currently installed lockfile versions.
 - Replaced the broken `next lint` script with `typecheck` and added a `verify` script that runs tests, type checking, and production build.
 - Added `README.md` with local setup, environment variables, verification commands, architecture boundaries, deployment notes, and private MVP limitations.
-- Updated deployment documentation for Vercel environment variable setup, Production/Preview env reminders, server-side-only provider key handling, localStorage-only persistence, no-auth risk, and best-effort server memory caches.
+- Updated deployment documentation for Vercel environment variable setup, Production/Preview env reminders, server-side-only provider key handling, localStorage-only persistence, pre-auth exposure risk, and best-effort server memory caches.
 - Updated stale project constitution market quote guidance to the current `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT` provider map.
 - Documented the current npm audit status: 2 moderate PostCSS advisories through Next, with no `npm audit fix --force` because npm recommends an unsafe/breaking downgrade path.
 
+## Production Security Milestone - 2026-05-04
+
+- Production deployment is live on Vercel.
+- Vercel Standard Protection is enabled where available on the Hobby plan.
+- App-level password protection is active via the server-side `DASHBOARD_PASSWORD` environment variable.
+- Anonymous production access is blocked and redirects to `/login`.
+- Authenticated users can access the dashboard through the signed httpOnly `trading_dashboard_auth` cookie.
+- Provider API keys remain server-side only in Vercel environment variables.
+- Production password protection was verified after the Vercel redeploy.
+- Supabase and external auth providers remain intentionally deferred for a later phase.
+
+## DashboardShell Hydration Testing - 2026-05-04
+
+- Added `jsdom` as the only new test dependency for DOM-based hydration coverage.
+- Added an integrated `DashboardShell` hydration test using `renderToString`, `hydrateRoot`, React `act`, direct DOM queries, and the existing localStorage mock utility.
+- The hydration test server-renders the full dashboard, hydrates it in jsdom, and fails on React hydration-related console errors or warnings.
+- `global.fetch` is fully mocked for `/api/market-quotes` and `/api/fear-greed`; no real CoinMarketCap, FMP, or Twelve Data calls are made.
+- Covered post-mount client updates for live market quotes, Fear & Greed, saved Daily Snapshot synthesis notes, saved Gamma fields, imported account equity source state, and imported trade ledger source state.
+- No component behavior, API route behavior, auth behavior, or UI design changes were needed.
+- `npm run test` passed with 15 test files and 151 tests.
+
 ## Next Steps
 
-- Expand tests into component hydration behavior and view-model adapters before broadening source inputs further.
+- Expand tests into focused interaction smoke coverage and view-model adapters before broadening source inputs further.
 - Add an explicit market snapshot capture action later if saved daily SPX/watchlist reads become useful.
 - Consider adding Total Fees and Net Realized PnL to the compact Trade Ledger display model if the panel needs those values outside the import preview.
 - Consider a fuller import history/clear confirmation flow after the MVP import path proves useful.
@@ -707,4 +728,3 @@
 - Decide the first live market data source, starting with SPX.
 - Later add source reference or screenshot upload for Gamma after manual numeric entry is proven.
 - Consider Supabase or another durable sync layer only after local workflows stabilize.
-- Enable Vercel Deployment Protection or add simple auth before public internet deployment.

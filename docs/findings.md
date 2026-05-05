@@ -1815,13 +1815,23 @@ Sample reviewed terminal values from the verification run:
 
 - Added `README.md` with project summary, local setup, environment variables, commands, verification sequence, architecture boundaries, deployment notes, and private MVP limitations.
 - Updated the handoff documentation with Vercel deployment notes.
-- Vercel env vars to configure: `CMC_API_KEY`, `FMP_API_KEY`, and `TWELVE_DATA_API_KEY`.
+- Vercel env vars to configure: `CMC_API_KEY`, `FMP_API_KEY`, `TWELVE_DATA_API_KEY`, and `DASHBOARD_PASSWORD`.
 - Provider env vars must be configured for each Vercel environment that will be used, including Production and Preview.
 - Provider keys remain server-side only; no `NEXT_PUBLIC_` provider keys should be created.
 
+### Production Security Milestone
+
+- Production deployment is live on Vercel.
+- Vercel Standard Protection is enabled where available on the Hobby plan.
+- App-level password protection is active via the server-side `DASHBOARD_PASSWORD` environment variable.
+- Anonymous visitors are redirected to `/login` before accessing dashboard routes.
+- Authenticated users can access the dashboard through the signed httpOnly `trading_dashboard_auth` cookie.
+- Provider API keys remain server-side only in Vercel environment variables.
+- Production password protection was verified after the Vercel redeploy.
+- Supabase and external auth providers are intentionally deferred for a later phase.
+
 ### Runtime And Persistence Warnings
 
-- Documented that the app currently has no authentication and should use Vercel Deployment Protection or a simple auth layer before public internet exposure.
 - Documented that current persistence is browser localStorage only and is device/browser-specific.
 - Documented that server memory caches for `/api/fear-greed` and `/api/market-quotes` are best-effort only and can reset when the process or deployment runtime resets.
 
@@ -1835,3 +1845,35 @@ Sample reviewed terminal values from the verification run:
 
 - Updated the project constitution to the current market quote provider map: `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT`.
 - Removed stale guidance that treated `WTI` and `DXY` as current unavailable MVP rows.
+
+## DashboardShell Hydration Testing Findings - 2026-05-04
+
+### Test Environment
+
+- Added `jsdom` as the minimal dev-only dependency needed for DOM-based hydration tests.
+- Kept the existing Vitest configuration unchanged by using a per-file `@vitest-environment jsdom` directive.
+- Did not add React Testing Library or broad component test infrastructure.
+
+### Hydration Coverage
+
+- Added `src/components/dashboard/dashboardHydration.test.ts` as an integrated `DashboardShell` hydration test.
+- The test uses `renderToString`, `hydrateRoot`, React `act`, direct DOM queries, and the existing localStorage mock.
+- React hydration-related `console.error` and `console.warn` output is filtered and asserted empty so mismatch warnings fail the test without making it brittle against unrelated logging.
+
+### Client Data Behavior Covered
+
+- `/api/market-quotes` is mocked with deterministic quote data and verified to update the SPX source label, SPX price, and quote source state after hydration.
+- `/api/fear-greed` is mocked with deterministic sentiment data and verified to update the displayed value and classification after hydration.
+- A saved Daily Snapshot is preloaded into localStorage and verified through Trading Context synthesis text and Gamma Context saved levels after hydration.
+- Imported account equity history and exchange trade ledger records are preloaded into localStorage and verified through Performance Review's imported source and trade ledger source state.
+
+### Boundaries
+
+- `global.fetch` is fully mocked; no CoinMarketCap, Financial Modeling Prep, or Twelve Data network calls are made.
+- No API route behavior, auth behavior, dashboard feature behavior, or UI design changed.
+- No hydration bug was found during this pass.
+
+### Remaining Test Gaps
+
+- Broader interaction smoke tests remain future work, especially file import interactions, manual Gamma editing, Synthesis Notes editing, and checklist status toggles.
+- Full browser/end-to-end coverage remains deferred.

@@ -97,7 +97,7 @@
 - [x] Resolve or document npm audit findings.
 - [x] Add lint/typecheck script behavior compatible with the installed Next version.
 - [x] Add deployment setup notes for Vercel env vars and localStorage-only limitations.
-- [ ] Add private access protection before public internet deployment.
+- [x] Add private access protection before public internet deployment.
 - [x] Add account equity CSV parser and return calculation tests.
 - [x] Add exchange trade ledger CSV parser and calculation tests.
 - [x] Allow exact duplicate exchange close rows to skip with warnings.
@@ -105,5 +105,5 @@
 - [x] Add API route fallback behavior tests for Fear & Greed and market quotes.
 - [x] Add browser cache save/load path tests for live data.
 - [x] Add localStorage helper tests for daily snapshots and imported performance sources.
-- [ ] Add component hydration behavior tests for live data modules.
+- [x] Add component hydration behavior tests for live data modules.
 - [ ] Add smoke tests or component tests once interactive workflows begin.
