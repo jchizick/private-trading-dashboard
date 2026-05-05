@@ -1,6 +1,7 @@
 import { GammaContextModule } from "@/components/dashboard/GammaContextModule";
 import { DailySnapshotProvider } from "@/components/dashboard/DailySnapshotProvider";
 import { FearGreedModule } from "@/components/dashboard/FearGreedModule";
+import { MarketSnapshotCaptureControl } from "@/components/dashboard/MarketSnapshotCaptureControl";
 import { MarketSituationModule } from "@/components/dashboard/MarketSituationModule";
 import { PerformanceModule } from "@/components/dashboard/PerformanceModule";
 import { TradingContextModule } from "@/components/dashboard/TradingContextModule";
@@ -85,6 +86,9 @@ export function DashboardShell({ data }: DashboardShellProps) {
 
         <DailySnapshotProvider>
           <div className="dashboardGrid">
+            <div className="dashboardSlot dashboardSlot--capture">
+              <MarketSnapshotCaptureControl />
+            </div>
             <div id="performance" className="dashboardSlot dashboardSlot--performance">
               <PerformanceModule performance={data.performance} />
             </div>

@@ -320,6 +320,42 @@ describe("DashboardShell hydration", () => {
     expect(text).toContain("Source: Imported CSV");
     expect(text).toContain("Local CSV");
     expect(text).toContain("Trade Ledger: imported");
+    const storedBeforeCapture = JSON.parse(
+      localStorage.getItem(getDailySnapshotStorageKey(getLocalTradingDate())) ?? "{}"
+    );
+
+    expect(storedBeforeCapture.spx.primaryQuote?.sourceLabel).not.toBe("Hydration SPX feed");
+    expect(storedBeforeCapture.fearGreed.value).not.toBe(82);
+
+    await act(async () => {
+      Array.from(container.querySelectorAll("button"))
+        .find((button) => button.textContent === "Capture Market Snapshot")
+        ?.click();
+    });
+
+    const storedAfterCapture = JSON.parse(
+      localStorage.getItem(getDailySnapshotStorageKey(getLocalTradingDate())) ?? "{}"
+    );
+
+    expect(storedAfterCapture.spx.primaryQuote).toMatchObject({
+      displaySymbol: "SPX500",
+      price: 6012.34,
+      provider: "fmp",
+      providerSymbol: "ESUSD",
+      status: "live",
+      sourceLabel: "Hydration SPX feed",
+      asOf: "2026-05-04T14:29:00.000Z"
+    });
+    expect(storedAfterCapture.spx.quoteSourceState).toBe("live");
+    expect(storedAfterCapture.fearGreed).toMatchObject({
+      value: 82,
+      label: "Extreme Greed",
+      lastWeek: 74,
+      lastMonth: 58,
+      yearHigh: 91,
+      yearLow: 22,
+      updatedAt: "2026-05-04T14:30:00.000Z"
+    });
     expect(getHydrationMessages(consoleErrorSpy)).toEqual([]);
     expect(getHydrationMessages(consoleWarnSpy)).toEqual([]);
   });

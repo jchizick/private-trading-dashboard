@@ -3,6 +3,7 @@ import type {
   ISODateTime,
   PerformanceReviewSnapshot
 } from "@/types/performanceSources";
+import type { MarketQuoteProvider, MarketQuoteStatus } from "@/types/marketQuotes";
 
 export type SnapshotStatus = "draft" | "saved" | "archived";
 export type ChecklistStatus = "checked" | "watch" | "not checked";
@@ -12,6 +13,21 @@ export type TrendDirection = "bullish" | "bearish" | "neutral";
 export type SessionStatus = "positive" | "negative" | "mixed";
 export type GammaRegime = "positive gamma" | "negative gamma" | "transition";
 export type GammaStatus = "pending" | "not_checked" | "checked" | "unavailable" | "market_closed";
+export type MarketQuoteSourceState = "live" | "cached" | "partial" | "mock";
+export type DailySnapshotSource = "manual" | "mock" | "market_data";
+export type FearGreedLabel = "Extreme Fear" | "Fear" | "Neutral" | "Greed" | "Extreme Greed" | "Unknown";
+
+export interface CapturedMarketQuoteRow {
+  displaySymbol: string;
+  price: number | null;
+  change: number | null;
+  changePercent: number | null;
+  provider: MarketQuoteProvider;
+  providerSymbol: string | null;
+  status: MarketQuoteStatus;
+  sourceLabel: string;
+  asOf: ISODateTime | null;
+}
 
 // Persistence/domain types are intentionally separate from src/types/dashboard.ts.
 // The dashboard.ts contracts remain frontend view models for the current shell.
@@ -52,14 +68,10 @@ export interface SpxSnapshot {
     price: number;
     bias: "support" | "resistance" | "pivot";
   }>;
-  watchlist?: Array<{
-    symbol: string;
-    last: number | null;
-    change: number | null;
-    changePercent: number | null;
-    volumeLabel?: string;
-  }>;
-  source: "manual" | "mock" | "market_data";
+  primaryQuote: CapturedMarketQuoteRow | null;
+  quoteSourceState: MarketQuoteSourceState;
+  watchlist: CapturedMarketQuoteRow[];
+  source: DailySnapshotSource;
   capturedAt: ISODateTime;
 }
 
@@ -82,11 +94,12 @@ export interface GammaSnapshot {
 export interface FearGreedSnapshot {
   source: "CMC Crypto Fear and Greed Index" | string;
   value: number | null;
-  label: "Extreme Fear" | "Fear" | "Neutral" | "Greed" | "Extreme Greed" | "Unknown";
-  lastWeek?: number | null;
-  lastMonth?: number | null;
-  yearHigh?: number | null;
-  yearLow?: number | null;
+  label: FearGreedLabel;
+  lastWeek: number | null;
+  lastMonth: number | null;
+  yearHigh: number | null;
+  yearLow: number | null;
+  updatedAt: ISODateTime | null;
   capturedAt: ISODateTime;
 }
 

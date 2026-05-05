@@ -1877,3 +1877,62 @@ Sample reviewed terminal values from the verification run:
 
 - Broader interaction smoke tests remain future work, especially file import interactions, manual Gamma editing, Synthesis Notes editing, and checklist status toggles.
 - Full browser/end-to-end coverage remains deferred.
+
+## Daily Market Snapshot Capture Foundation Findings - 2026-05-04
+
+### Data Model
+
+- `DailyDashboardSnapshot.spx` now supports captured quote rows for the current six-symbol watchlist, a `primaryQuote` for `SPX500`, quote source state, source metadata, and captured timestamp.
+- Daily Fear & Greed snapshots now include current value, classification, history fields, source, provider update timestamp, and captured timestamp.
+- The captured quote row shape preserves provider, provider symbol, quote status, source label, and provider `asOf` timestamp without storing chart/candle placeholder data.
+
+### Normalization
+
+- Daily snapshot normalization now covers SPX and Fear & Greed in addition to Gamma.
+- Older saved SPX watchlist rows with `symbol`/`last` normalize into captured rows with `provider: mock`, `status: mock`, `sourceLabel: mock`, and `asOf: null`.
+- Missing SPX `primaryQuote`, quote source state, and Fear & Greed update timestamp fields default safely without fabricating live data.
+
+### Transient Capture State
+
+- Added pure capture helpers that build daily SPX and Fear & Greed payloads from typed display candidates.
+- `DailySnapshotProvider` now owns transient market and sentiment capture candidates plus publisher functions.
+- `MarketSituationModule` publishes the current displayed market rows into this transient context.
+- `FearGreedModule` publishes the current displayed sentiment snapshot into this transient context.
+- This context does not persist anything yet; it only prepares source-of-truth state for a future explicit capture action.
+
+### Boundaries
+
+- No Capture Market Snapshot button or snapshot write action was added.
+- Live/cache data still does not automatically write into `DailyDashboardSnapshot`.
+- No API route behavior, provider integration, auth behavior, websocket/candle feed, dependency, or UI redesign changed.
+
+### Tests
+
+- Added helper coverage for six-symbol quote capture, SPX primary selection, source-state preservation, live/cached/mock/unavailable row preservation, Fear & Greed field capture, and missing-data safety.
+- Extended daily snapshot storage coverage for legacy market/sentiment normalization and the current six-symbol mock snapshot shape.
+
+## Daily Market Snapshot Capture Action Findings - 2026-05-04
+
+### User Action
+
+- Added one compact `Capture Market Snapshot` button inside the provider-controlled dashboard grid.
+- The top bar remains unchanged because it is outside `DailySnapshotProvider`.
+- The button is disabled only when neither market nor Fear & Greed capture candidate is available.
+
+### Persistence Behavior
+
+- Clicking the button is the only new path that writes live/cache market or sentiment display data into `DailyDashboardSnapshot`.
+- Capture writes `spx` from the current market candidate and `fearGreed` from the current sentiment candidate, sets matching `capturedAt` timestamps, updates root `updatedAt`, marks the snapshot saved, and persists under `market-command:daily-snapshot:${activeDate}`.
+- If only one candidate is available, capture updates that slice and preserves the other existing daily snapshot slice.
+- Repeated capture overwrites the same active date's saved market and sentiment values without a confirmation modal.
+
+### Source And Date Safety
+
+- Source states and row statuses are preserved exactly; live, cached, partial, mock, and unavailable data are not rewritten into misleading labels.
+- Date switching remains isolated because the existing active-date save path writes only to the selected date key.
+- The captured timestamp indicator reflects the selected date's stored captured market/sentiment timestamp.
+
+### Tests
+
+- Added provider-level capture action coverage for SPX/Fear & Greed writes, same-date overwrite behavior, date-specific persistence, and one-candidate capture safety.
+- Extended the integrated DashboardShell hydration test to prove route/cache hydration alone does not write to the daily snapshot, then clicking `Capture Market Snapshot` persists the displayed live market and sentiment values.

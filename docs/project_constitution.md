@@ -27,10 +27,13 @@
 - The app currently uses a Next.js App Router frontend with `src/app`.
 - External provider API keys must never be exposed to browser/client code; provider calls that require secrets must go through server-side App Router route handlers.
 - CoinMarketCap Fear & Greed uses `CMC_API_KEY` server-side only through `/api/fear-greed`.
-- Live Fear & Greed cache data must remain separate from `DailyDashboardSnapshot`; daily snapshots may later capture point-in-time sentiment values during an explicit save flow.
+- Live Fear & Greed cache data must remain separate from `DailyDashboardSnapshot`; daily snapshots may capture point-in-time sentiment values only during an explicit user capture/save flow.
 - Financial Modeling Prep market quotes use `FMP_API_KEY` server-side only through `/api/market-quotes`.
 - Twelve Data market quotes use `TWELVE_DATA_API_KEY` server-side only through `/api/market-quotes`.
-- Live/cache market quote data must remain separate from `DailyDashboardSnapshot`; daily snapshots may later capture point-in-time SPX/watchlist values during an explicit save flow.
+- Live/cache market quote data must remain separate from `DailyDashboardSnapshot`; daily snapshots may capture point-in-time SPX/watchlist values only during an explicit user capture/save flow.
+- Typed market and sentiment capture candidates are transient client state owned by the daily snapshot provider area; publishing candidates must not persist them.
+- The `Capture Market Snapshot` action is the explicit user flow that persists current typed market/sentiment candidates into the active `DailyDashboardSnapshot`.
+- Capturing market/sentiment context overwrites only the active trading date's saved market snapshot fields and must preserve source/status labels exactly.
 - Browser stale cache for market quotes uses `market-command:market-quotes-cache` and remains separate from saved daily history.
 - `MarketSituationModule` must render mock-first and hydrate market quote data only after client mount.
 - MVP market quotes should use only verified symbols: FMP `ESUSD` primary and `^GSPC` fallback for `SPX500`, Twelve Data `XAU/USD` primary and FMP `GCUSD` fallback for `XAUUSD`, FMP `^VIX` for `VIX`, FMP `EURUSD` for `EURUSD`, Twelve Data `CAD/USD` for `CADUSD`, and FMP `BTCUSD` primary with Twelve Data `BTC/USD` fallback for `BTCUSDT`.
@@ -53,6 +56,8 @@
 - `TradingContextModule` consumes a `TradingContext` for the surrounding module contract and currently initializes editable Synthesis Notes from `DailyDashboardSnapshot.synthesis`.
 - `TradingContextModule` currently initializes interactive Trading Checklist status state from `DailyDashboardSnapshot.checklist`.
 - `DailySnapshotProvider` owns the active editable `DailyDashboardSnapshot` prototype object, active date, saved date list, date switching, and localStorage persistence under `market-command:daily-snapshot:${date}`.
+- `DailySnapshotProvider` also owns transient typed market/sentiment capture candidates for a future explicit capture action; those candidates are not saved until a user action writes them into the active snapshot.
+- `DailySnapshotProvider` owns the explicit market snapshot capture action and persists captured market/sentiment fields through the same active-date localStorage save path.
 - `TradingContextModule` consumes `DailySnapshotProvider` state for Synthesis Notes and Trading Checklist instead of owning duplicate daily snapshot state.
 - Local snapshot archive access is currently date-key based; saved snapshot dates are inferred from localStorage keys rather than a separate archive index.
 - Switching the active date currently auto-cancels Synthesis Notes edit mode and discards unsaved draft edits.
@@ -104,6 +109,7 @@
 - Gamma snapshot defaults and normalization helpers are defined in `src/lib/gammaSnapshot.ts`.
 - The persistence root is `DailyDashboardSnapshot`.
 - Daily snapshot submodels include `SpxSnapshot`, `GammaSnapshot`, `FearGreedSnapshot`, `SynthesisNotes`, `TradingChecklistItem`, `ExternalToolLink`, `PerformanceReviewSnapshot`, and `PerformanceReviewNote`.
+- Captured market quote rows in daily snapshots preserve display symbol, price, change, change percent, provider, provider symbol, quote status, source label, and provider timestamp.
 - Performance source models include `AccountEquitySnapshot` for Google Sheet equity history and `ExchangeTradeRecord` for exchange CSV/XLSX trade ledger imports.
 - Module data contracts are `PerformanceSnapshot`, `MarketSituation`, `GammaContext`, and `TradingContext`.
 - Sentiment data contract is `FearGreedSnapshot`.
@@ -138,7 +144,7 @@
 - CoinMarketCap Fear & Greed now uses a server-side proxy, server memory cache, browser stale cache, and mock fallback.
 - Financial Modeling Prep and Twelve Data market quotes now use a server-side proxy route, server memory cache, browser stale cache, and mock/unavailable fallback behavior.
 - No broad validation layer exists; account equity CSV import has focused parser validation only.
-- SPX/watchlist live market quote UI hydration now exists, but explicit daily market snapshot capture has not been added yet.
+- SPX/watchlist and Fear & Greed modules publish typed transient capture candidates, and the explicit Capture Market Snapshot action persists them into the active daily snapshot.
 - No gamma image upload implementation exists.
 - Vitest now covers account equity CSV import and account equity return calculations; broader test coverage is still pending.
 - Dependency ranges are pinned for deployment hardening.

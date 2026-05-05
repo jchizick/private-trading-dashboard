@@ -718,10 +718,34 @@
 - No component behavior, API route behavior, auth behavior, or UI design changes were needed.
 - `npm run test` passed with 15 test files and 151 tests.
 
+## Daily Market Snapshot Capture Foundation - 2026-05-04
+
+- Refined daily snapshot market/sentiment capture types for captured quote rows, SPX primary quote, quote source state, six-symbol watchlist rows, and Fear & Greed source timestamps.
+- Added safe normalization for legacy daily snapshots so older SPX watchlist and Fear & Greed records load with mock/null defaults instead of fabricating live data.
+- Updated the mock daily snapshot to the current `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT` captured watchlist shape.
+- Added pure helpers for building SPX and Fear & Greed daily snapshot payloads from typed client display candidates.
+- Extended `DailySnapshotProvider` with transient market/sentiment capture candidate state and publisher functions.
+- `MarketSituationModule` and `FearGreedModule` now publish their current displayed data into the transient capture context after hydration or fallback updates.
+- No capture button, snapshot write action, API route behavior, UI layout, or auth behavior was added.
+- Live/cache display data still does not auto-write into `DailyDashboardSnapshot`; explicit capture remains the next implementation pass.
+- `npm run test` passed with 16 test files and 158 tests.
+
+## Daily Market Snapshot Capture Action - 2026-05-04
+
+- Added a compact `Capture Market Snapshot` action inside the `DailySnapshotProvider`-controlled dashboard grid.
+- The action writes the current typed market quote candidate and Fear & Greed candidate into the active `DailyDashboardSnapshot` only when clicked.
+- Capturing updates `DailyDashboardSnapshot.spx`, `DailyDashboardSnapshot.fearGreed`, their `capturedAt` timestamps, root `updatedAt`, and persists the active trading date to localStorage.
+- Repeated captures overwrite the active date's prior captured market/sentiment values without a confirmation modal.
+- Source/status values are preserved exactly, including live, cached, partial, and mock states; mock/partial data is not relabeled as live.
+- Added a compact captured timestamp/status indicator without redesigning SPX or Fear & Greed modules.
+- Date switching remains isolated by storage key, so capturing one active date does not overwrite another date.
+- Extended tests for explicit capture writes, overwrite behavior, date isolation, one-candidate capture safety, and integrated hydration click-to-persist behavior.
+- Confirmed route/cache hydration alone does not write live data into `DailyDashboardSnapshot`.
+
 ## Next Steps
 
 - Expand tests into focused interaction smoke coverage and view-model adapters before broadening source inputs further.
-- Add an explicit market snapshot capture action later if saved daily SPX/watchlist reads become useful.
+- Continue with richer historical market snapshot display only after the capture workflow proves useful.
 - Consider adding Total Fees and Net Realized PnL to the compact Trade Ledger display model if the panel needs those values outside the import preview.
 - Consider a fuller import history/clear confirmation flow after the MVP import path proves useful.
 - Choose private persistence strategy for manual notes and context snapshots.

@@ -23,12 +23,85 @@ export const mockDailyDashboardSnapshot = {
       { label: "Balance pivot", price: 5120, bias: "pivot" },
       { label: "Demand shelf", price: 5068, bias: "support" }
     ],
+    primaryQuote: {
+      displaySymbol: "SPX500",
+      price: 5148.21,
+      change: 18.4,
+      changePercent: 0.36,
+      provider: "mock",
+      providerSymbol: null,
+      status: "mock",
+      sourceLabel: "mock",
+      asOf: null
+    },
+    quoteSourceState: "mock",
     watchlist: [
-      { symbol: "SPX500", last: 5148.21, change: 18.4, changePercent: 0.36, volumeLabel: "2.1B" },
-      { symbol: "XAUUSD", last: 2331.8, change: -6.2, changePercent: -0.27, volumeLabel: "184K" },
-      { symbol: "WTI", last: 78.42, change: 0.54, changePercent: 0.69, volumeLabel: "312K" },
-      { symbol: "DXY", last: 104.68, change: -0.12, changePercent: -0.11, volumeLabel: "96K" },
-      { symbol: "BTCUSDT", last: 64820.5, change: 410.2, changePercent: 0.64, volumeLabel: "38K" }
+      {
+        displaySymbol: "SPX500",
+        price: 5148.21,
+        change: 18.4,
+        changePercent: 0.36,
+        provider: "mock",
+        providerSymbol: null,
+        status: "mock",
+        sourceLabel: "mock",
+        asOf: null
+      },
+      {
+        displaySymbol: "XAUUSD",
+        price: 2331.8,
+        change: -6.2,
+        changePercent: -0.27,
+        provider: "mock",
+        providerSymbol: null,
+        status: "mock",
+        sourceLabel: "mock",
+        asOf: null
+      },
+      {
+        displaySymbol: "VIX",
+        price: 17.43,
+        change: 0.44,
+        changePercent: 2.59,
+        provider: "mock",
+        providerSymbol: null,
+        status: "mock",
+        sourceLabel: "mock",
+        asOf: null
+      },
+      {
+        displaySymbol: "EURUSD",
+        price: 1.1713,
+        change: -0.0008,
+        changePercent: -0.07,
+        provider: "mock",
+        providerSymbol: null,
+        status: "mock",
+        sourceLabel: "mock",
+        asOf: null
+      },
+      {
+        displaySymbol: "CADUSD",
+        price: 0.7312,
+        change: 0.0018,
+        changePercent: 0.25,
+        provider: "mock",
+        providerSymbol: null,
+        status: "mock",
+        sourceLabel: "mock",
+        asOf: null
+      },
+      {
+        displaySymbol: "BTCUSDT",
+        price: 64820.5,
+        change: 410.2,
+        changePercent: 0.64,
+        provider: "mock",
+        providerSymbol: null,
+        status: "mock",
+        sourceLabel: "mock",
+        asOf: null
+      }
     ],
     source: "mock",
     capturedAt: "2026-05-01T09:15:00-04:00"
@@ -54,6 +127,7 @@ export const mockDailyDashboardSnapshot = {
     lastMonth: 51,
     yearHigh: 78,
     yearLow: 18,
+    updatedAt: "2026-05-01T09:00:00-04:00",
     capturedAt: "2026-05-01T09:00:00-04:00"
   },
   synthesis: {

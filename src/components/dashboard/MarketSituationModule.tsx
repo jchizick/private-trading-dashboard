@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useDailySnapshot } from "@/components/dashboard/DailySnapshotProvider";
 import { getSessionTone, getTrendTone } from "@/lib/marketStatus";
 import { SectionPanel } from "@/components/ui/SectionPanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { PlaceholderFrame } from "@/components/ui/PlaceholderFrame";
 import { formatPrice } from "@/lib/formatters";
+import { createMarketCaptureCandidate } from "@/lib/dailyMarketSnapshotCapture";
 import {
   isMarketQuotesFetchResult,
   loadMarketQuotesCache,
   saveMarketQuotesCache
 } from "@/lib/marketQuoteStorage";
 import type { MarketSituation } from "@/types/dashboard";
+import type { CapturedMarketQuoteRow, MarketQuoteSourceState } from "@/types/dailySnapshot";
 import type { MarketQuote, MarketQuotesFetchResult } from "@/types/marketQuotes";
 
 type BadgeTone = "positive" | "negative" | "neutral" | "warning";
@@ -29,10 +32,15 @@ const marketWatchlist = [
   { symbol: "BTCUSDT", last: "64,820.50", change: "+410.20", changePercent: "+0.64%", volume: "38K" }
 ] as const;
 
-type QuoteSourceState = "live" | "cached" | "partial" | "mock";
-
 function getChangeTone(change: string) {
   return change.startsWith("-") ? "negative" : "positive";
+}
+
+function parseFallbackNumber(value: string) {
+  const normalizedValue = value.replace(/[%,$,\s]/g, "");
+  const parsedValue = Number(normalizedValue);
+
+  return Number.isFinite(parsedValue) ? parsedValue : null;
 }
 
 function formatSignedPrice(value: number | null, fallback: string) {
@@ -78,7 +86,7 @@ function getStatusTone(status: MarketQuote["status"]): BadgeTone {
   return "neutral";
 }
 
-function getQuoteSourceState(result: MarketQuotesFetchResult | null): QuoteSourceState {
+function getQuoteSourceState(result: MarketQuotesFetchResult | null): MarketQuoteSourceState {
   if (!result) {
     return "mock";
   }
@@ -99,7 +107,7 @@ function getQuoteSourceState(result: MarketQuotesFetchResult | null): QuoteSourc
   return hasLive ? "live" : "mock";
 }
 
-function getSourceStateTone(state: QuoteSourceState): BadgeTone {
+function getSourceStateTone(state: MarketQuoteSourceState): BadgeTone {
   if (state === "live" || state === "partial") {
     return "positive";
   }
@@ -158,6 +166,7 @@ function getQuotePrice(quote: MarketQuote | undefined, fallback: number) {
 
 export function MarketSituationModule({ market }: MarketSituationModuleProps) {
   const [quotesResult, setQuotesResult] = useState<MarketQuotesFetchResult | null>(null);
+  const { publishMarketCaptureCandidate } = useDailySnapshot();
 
   useEffect(() => {
     let isMounted = true;
@@ -211,6 +220,41 @@ export function MarketSituationModule({ market }: MarketSituationModuleProps) {
   const spxQuote = quotesResult?.quotes.SPX500;
   const displayedSpxPrice = getQuotePrice(spxQuote, market.latestDailyClose);
   const hasSpxChange = typeof spxQuote?.change === "number" && typeof spxQuote.changePercent === "number";
+  const marketCaptureRows = useMemo<CapturedMarketQuoteRow[]>(() => (
+    marketWatchlist.map((item) => {
+      const quote = quotesResult?.quotes[item.symbol];
+
+      if (quote) {
+        return {
+          displaySymbol: item.symbol,
+          price: quote.price,
+          change: quote.change,
+          changePercent: quote.changePercent,
+          provider: quote.provider,
+          providerSymbol: quote.providerSymbol,
+          status: quote.status,
+          sourceLabel: quote.sourceLabel,
+          asOf: quote.asOf
+        };
+      }
+
+      return {
+        displaySymbol: item.symbol,
+        price: parseFallbackNumber(item.last),
+        change: parseFallbackNumber(item.change),
+        changePercent: parseFallbackNumber(item.changePercent),
+        provider: "mock",
+        providerSymbol: null,
+        status: "mock",
+        sourceLabel: "mock",
+        asOf: null
+      };
+    })
+  ), [quotesResult]);
+  const marketCaptureCandidate = useMemo(
+    () => createMarketCaptureCandidate(market, sourceState, marketCaptureRows),
+    [market, sourceState, marketCaptureRows]
+  );
   const watchlistRows = useMemo(() => (
     marketWatchlist.map((item) => {
       const quote = quotesResult?.quotes[item.symbol];
@@ -228,6 +272,14 @@ export function MarketSituationModule({ market }: MarketSituationModuleProps) {
       };
     })
   ), [quotesResult]);
+
+  useEffect(() => {
+    publishMarketCaptureCandidate(marketCaptureCandidate);
+
+    return () => {
+      publishMarketCaptureCandidate(null);
+    };
+  }, [marketCaptureCandidate, publishMarketCaptureCandidate]);
 
   return (
     <SectionPanel

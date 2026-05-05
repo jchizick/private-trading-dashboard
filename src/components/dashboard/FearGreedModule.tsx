@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDailySnapshot } from "@/components/dashboard/DailySnapshotProvider";
 import { SectionPanel } from "@/components/ui/SectionPanel";
 import { loadFearGreedCache, saveFearGreedCache } from "@/lib/fearGreedStorage";
+import type { FearGreedLabel } from "@/types/dailySnapshot";
 import type { FearGreedSnapshot } from "@/types/dashboard";
 import type { FearGreedFetchResult } from "@/types/fearGreed";
 
@@ -33,7 +35,18 @@ function formatLastUpdated(value: string) {
 
 export function FearGreedModule({ fearGreed }: FearGreedModuleProps) {
   const [currentFearGreed, setCurrentFearGreed] = useState(fearGreed);
+  const { publishFearGreedCaptureCandidate } = useDailySnapshot();
   const value = clampGaugeValue(currentFearGreed.value);
+  const fearGreedCaptureCandidate = useMemo(() => ({
+    source: currentFearGreed.source,
+    value,
+    label: currentFearGreed.label as FearGreedLabel,
+    lastWeek: currentFearGreed.lastWeek,
+    lastMonth: currentFearGreed.lastMonth,
+    yearHigh: currentFearGreed.yearHigh,
+    yearLow: currentFearGreed.yearLow,
+    updatedAt: currentFearGreed.lastUpdatedAt
+  }), [currentFearGreed, value]);
 
   useEffect(() => {
     let isMounted = true;
@@ -75,6 +88,14 @@ export function FearGreedModule({ fearGreed }: FearGreedModuleProps) {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    publishFearGreedCaptureCandidate(fearGreedCaptureCandidate);
+
+    return () => {
+      publishFearGreedCaptureCandidate(null);
+    };
+  }, [fearGreedCaptureCandidate, publishFearGreedCaptureCandidate]);
 
   return (
     <SectionPanel

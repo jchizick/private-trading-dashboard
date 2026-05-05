@@ -69,6 +69,79 @@ describe("daily dashboard snapshot localStorage", () => {
     });
   });
 
+  it("normalizes legacy market and sentiment snapshot fields when loading", () => {
+    const snapshot = createDailySnapshotForDate("2026-05-04");
+    const legacySnapshot = {
+      ...snapshot,
+      spx: {
+        symbol: "SPX",
+        latestClose: 5148.21,
+        dailyTrend: "bullish",
+        weeklyTrend: "neutral",
+        marketStatus: "sideways consolidation",
+        keyLevels: [
+          { label: "Prior high", price: 5185, bias: "resistance" }
+        ],
+        watchlist: [
+          { symbol: "SPX500", last: 5148.21, change: 18.4, changePercent: 0.36, volumeLabel: "2.1B" },
+          { symbol: "XAUUSD", last: 2331.8, change: -6.2, changePercent: -0.27, volumeLabel: "184K" },
+          { symbol: "WTI", last: 78.42, change: 0.54, changePercent: 0.69, volumeLabel: "312K" },
+          { symbol: "BTCUSDT", last: 64820.5, change: 410.2, changePercent: 0.64, volumeLabel: "38K" }
+        ],
+        source: "mock",
+        capturedAt: "2026-05-04T09:15:00.000Z"
+      },
+      fearGreed: {
+        source: "CMC Crypto Fear and Greed Index",
+        value: 45,
+        label: "Neutral",
+        lastWeek: 42,
+        lastMonth: 51,
+        yearHigh: 78,
+        yearLow: 18,
+        capturedAt: "2026-05-04T09:00:00.000Z"
+      }
+    };
+    setupLocalStorage({
+      [getDailySnapshotStorageKey("2026-05-04")]: JSON.stringify(legacySnapshot)
+    });
+
+    const loaded = loadDailyDashboardSnapshot("2026-05-04");
+
+    expect(loaded?.spx.quoteSourceState).toBe("mock");
+    expect(loaded?.spx.primaryQuote).toMatchObject({
+      displaySymbol: "SPX500",
+      price: 5148.21,
+      provider: "mock",
+      status: "mock",
+      sourceLabel: "mock",
+      asOf: null
+    });
+    expect(loaded?.spx.watchlist.map((row) => row.displaySymbol)).toEqual(["SPX500", "XAUUSD", "BTCUSDT"]);
+    expect(loaded?.fearGreed).toMatchObject({
+      value: 45,
+      label: "Neutral",
+      updatedAt: null,
+      capturedAt: "2026-05-04T09:00:00.000Z"
+    });
+  });
+
+  it("creates current mock snapshots with captured six-symbol market rows", () => {
+    const snapshot = createDailySnapshotForDate("2026-05-04");
+
+    expect(snapshot.spx.primaryQuote?.displaySymbol).toBe("SPX500");
+    expect(snapshot.spx.quoteSourceState).toBe("mock");
+    expect(snapshot.spx.watchlist.map((row) => row.displaySymbol)).toEqual([
+      "SPX500",
+      "XAUUSD",
+      "VIX",
+      "EURUSD",
+      "CADUSD",
+      "BTCUSDT"
+    ]);
+    expect(snapshot.fearGreed.updatedAt).toBeTruthy();
+  });
+
   it("rejects snapshots whose tradingDate does not match the requested key date", () => {
     const snapshot = createDailySnapshotForDate("2026-05-03");
     setupLocalStorage({

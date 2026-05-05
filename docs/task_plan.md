@@ -81,7 +81,8 @@
 - [x] Audit and stabilize mixed-provider market quote integration.
 - [x] Verify FMP `VIX` and `EURUSD` symbols before market quote wiring.
 - [x] Replace `WTI` and `DXY` with `VIX` and `EURUSD` after verification.
-- [ ] Add explicit daily market snapshot capture behavior after live display is stable.
+- [x] Add daily market snapshot capture data model and transient client capture candidates.
+- [x] Add explicit daily market snapshot capture behavior after live display is stable.
 - [ ] Integrate chart/embed source after provider choice.
 - [ ] Plan FMP Economic Calendar integration for Trading Context.
 - [ ] Later investigate FMP chart/candle APIs for possible SPX context support.

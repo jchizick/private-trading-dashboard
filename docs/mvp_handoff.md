@@ -23,8 +23,8 @@ Important architecture boundaries:
 - `DailyDashboardSnapshot` is the persistence center for daily command reads.
 - Account equity imports stay separate from daily snapshots.
 - Exchange trade ledger imports stay separate from account equity history and daily snapshots.
-- Fear & Greed live/cache data stays separate from daily snapshots.
-- Market quote live/cache data stays separate from daily snapshots.
+- Fear & Greed live/cache data stays separate from daily snapshots until the explicit capture action is clicked.
+- Market quote live/cache data stays separate from daily snapshots until the explicit capture action is clicked.
 - Provider API keys stay server-side.
 
 ## Local Setup
@@ -155,6 +155,13 @@ Gamma behavior:
 - Weekend drafts default to `market_closed`.
 - Weekday drafts default to `pending` before 10:05 AM ET and `not_checked` after 10:05 AM ET when no manual gamma levels exist.
 
+Market snapshot capture behavior:
+
+- `Capture Market Snapshot` saves the currently displayed SPX/watchlist quote context and Fear & Greed read into the active date's `DailyDashboardSnapshot`.
+- Live/cache route hydration does not write to daily snapshots by itself.
+- Capturing again overwrites the active date's prior captured market and sentiment fields without a confirmation modal.
+- Source and status labels are preserved exactly, so mock, cached, partial, and live reads remain distinguishable.
+
 ## Import Workflows
 
 ### Account Equity CSV
@@ -264,7 +271,8 @@ Cache and fallback:
 - Successful route data is cached in server memory and browser localStorage.
 - Missing key, provider failure, or malformed payload falls back to stale cache when available.
 - If no cache exists, the module keeps the initial mock data.
-- Fear & Greed data is not written into daily snapshots.
+- Fear & Greed data is not written into daily snapshots automatically.
+- `Capture Market Snapshot` saves the currently displayed value, classification, history fields, source timestamp, and captured timestamp into the active daily snapshot.
 
 ### Market Quotes
 
@@ -295,7 +303,8 @@ Cache and fallback:
 - Client hydration saves successful route results to browser localStorage.
 - Route failure falls back to browser stale cache.
 - If no browser cache exists, the module falls back to mock display data.
-- Market quote data is not written into daily snapshots.
+- Market quote data is not written into daily snapshots automatically.
+- `Capture Market Snapshot` saves the currently displayed six-symbol watchlist, `SPX500` primary quote, quote source state, provider/source/status metadata, and captured timestamp into the active daily snapshot.
 
 ## Storage Key Map
 
@@ -327,7 +336,7 @@ Server memory caches:
 
 - No Supabase or durable multi-device persistence.
 - Minimal app-level password authentication only; Supabase/Auth provider integration is deferred.
-- Automated test coverage exists for account equity CSV import, equity return calculations, exchange trade ledger CSV import, trade ledger calculations, Fear & Greed normalization, FMP/Twelve quote normalization, market quote payload validation, API route fallback behavior, localStorage/cache helper behavior, and integrated DashboardShell hydration behavior.
+- Automated test coverage exists for account equity CSV import, equity return calculations, exchange trade ledger CSV import, trade ledger calculations, Fear & Greed normalization, FMP/Twelve quote normalization, market quote payload validation, API route fallback behavior, localStorage/cache helper behavior, integrated DashboardShell hydration behavior, and explicit market snapshot capture behavior.
 - Broader component interaction tests and end-to-end smoke tests are still pending.
 - No Google Sheets sync.
 - No exchange API integration.
@@ -335,12 +344,12 @@ Server memory caches:
 - No Gamma screenshot upload, OCR, source URL workflow, or X/Twitter scraping.
 - No websocket feed.
 - No real candle/chart feed.
-- No explicit daily market snapshot capture yet.
+- Captured market snapshot display is still minimal; richer historical comparison views are deferred.
 
 ## Recommended Roadmap
 
-1. Expand tests beyond import/calculation/normalization, route fallback, storage-helper, and hydration coverage to focused interaction smoke tests and view-model adapters.
-2. Add explicit daily market snapshot capture for point-in-time market and sentiment reads.
+1. Expand tests beyond import/calculation/normalization, route fallback, storage-helper, hydration, and capture coverage to focused interaction smoke tests and view-model adapters.
+2. Add richer historical display for captured market/sentiment reads after the workflow proves useful.
 3. Add Supabase persistence and application authentication.
 4. Add Google Sheets sync for account equity history.
 5. Add Gamma screenshot/source URL workflow after manual Gamma entry remains stable.
