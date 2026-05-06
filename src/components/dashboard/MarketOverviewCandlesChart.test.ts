@@ -52,7 +52,10 @@ function candleResult(overrides: Partial<MarketCandlesFetchResult> = {}): Market
     ok: true,
     displaySymbol: "SPX500",
     requestedSymbol: "SPX500",
+    displaySource: "index",
     providerSymbol: "^GSPC",
+    sourceLabel: "S&P 500 Index",
+    sessionLabel: "Regular session",
     source: "Yahoo Finance",
     interval: "30m",
     range: "5d",
@@ -146,7 +149,9 @@ describe("MarketOverviewCandlesChart", () => {
     await flushClientEffects();
 
     expect(container.textContent).toContain("Mock SPX chart fallback");
-    expect(container.textContent).not.toContain("SPX500 / 30m / Yahoo Finance / Live");
+    expect(container.textContent).toContain("S&P 500 Index / 30M / Regular session / Yahoo Finance");
+    expect(container.textContent).not.toContain("Live");
+    expect(container.querySelector('button[aria-pressed="true"]')?.textContent).toBe("Index");
     expect(chartMocks.createChartMock).not.toHaveBeenCalled();
   });
 
@@ -161,8 +166,12 @@ describe("MarketOverviewCandlesChart", () => {
     await flushClientEffects();
     await flushClientEffects();
 
-    expect(container.textContent).toContain("SPX500 / 30m / Yahoo Finance / Live");
+    expect(container.textContent).toContain("S&P 500 Index / 30M / Regular session / Yahoo Finance / Live");
     expect(container.querySelector(".marketCandlesChart__fallback--hidden")).not.toBeNull();
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/market-candles?symbol=SPX500&source=index",
+      expect.objectContaining({ cache: "no-store" })
+    );
     expect(chartMocks.createChartMock).toHaveBeenCalledTimes(1);
     expect(chartMocks.addSeriesMock).toHaveBeenCalledWith("CandlestickSeries", {
       upColor: "rgba(209, 216, 213, 0.9)",
@@ -201,6 +210,7 @@ describe("MarketOverviewCandlesChart", () => {
   it("labels SPY proxy candles clearly", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => fetchResponse(candleResult({
       providerSymbol: "SPY",
+      sourceLabel: "SPY ETF proxy",
       isProxy: true,
       proxyFor: "^GSPC",
       candles: [
@@ -226,7 +236,76 @@ describe("MarketOverviewCandlesChart", () => {
     await flushClientEffects();
     await flushClientEffects();
 
-    expect(container.textContent).toContain("SPX500 proxy via SPY / 30m / Yahoo Finance / Live");
+    expect(container.textContent).toContain("SPY ETF proxy / 30M / Regular session / Yahoo Finance / Live");
+  });
+
+  it("switches to the futures source and renders ES=F candles", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+
+      if (url.includes("source=futures")) {
+        return fetchResponse(candleResult({
+          displaySource: "futures",
+          providerSymbol: "ES=F",
+          sourceLabel: "E-Mini S&P 500 Futures",
+          sessionLabel: "CME delayed / extended hours",
+          candles: [
+            {
+              time: 1777608000,
+              open: 7259,
+              high: 7259.75,
+              low: 7258,
+              close: 7258.75,
+              volume: 671,
+              source: "Yahoo Finance",
+              symbol: "ES=F",
+              isProxy: false
+            }
+          ]
+        }));
+      }
+
+      return fetchResponse(candleResult());
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    await act(async () => {
+      root = createRoot(container);
+      renderChart(root, "Mock SPX chart fallback");
+    });
+    await flushClientEffects();
+    await flushClientEffects();
+    await flushClientEffects();
+
+    await act(async () => {
+      Array.from(container.querySelectorAll("button"))
+        .find((button) => button.textContent === "Futures")
+        ?.click();
+    });
+    await flushClientEffects();
+    await flushClientEffects();
+    await flushClientEffects();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/market-candles?symbol=SPX500&source=index",
+      expect.objectContaining({ cache: "no-store" })
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/market-candles?symbol=SPX500&source=futures",
+      expect.objectContaining({ cache: "no-store" })
+    );
+    expect(container.textContent).toContain("E-Mini S&P 500 Futures / 30M / CME delayed / extended hours / Yahoo Finance / Live");
+    expect(container.querySelector('button[aria-pressed="true"]')?.textContent).toBe("Futures");
+    expect(chartMocks.setDataMock).toHaveBeenCalledWith([
+      {
+        time: 1777608000,
+        open: 7259,
+        high: 7259.75,
+        low: 7258,
+        close: 7258.75
+      }
+    ]);
   });
 
   it("resizes the chart through the resize observer without dropping the fitted view", async () => {

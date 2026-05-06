@@ -257,10 +257,6 @@ export function MarketSituationModule({ market }: MarketSituationModuleProps) {
           <MarketOverviewCandlesChart
             fallback={(
               <>
-                <div className="marketChart__header">
-                  <span>Intraday structure</span>
-                  <strong>{market.symbol}</strong>
-                </div>
                 <svg className="tradingChart" viewBox="0 0 360 210" role="img">
                   <g className="tradingChart__grid">
                     <path d="M34 24H328M34 68H328M34 112H328M34 156H328" />

@@ -29,7 +29,7 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-function yahooChart(symbol: "^GSPC" | "SPY", close = 7148.3) {
+function yahooChart(symbol: "^GSPC" | "SPY" | "ES=F", close = 7148.3) {
   return {
     chart: {
       result: [
@@ -127,7 +127,10 @@ describe("GET /api/market-candles", () => {
       ok: true,
       displaySymbol: "SPX500",
       requestedSymbol: "SPX500",
+      displaySource: "index",
       providerSymbol: "^GSPC",
+      sourceLabel: "S&P 500 Index",
+      sessionLabel: "Regular session",
       source: "Yahoo Finance",
       interval: "30m",
       range: "5d",
@@ -151,6 +154,50 @@ describe("GET /api/market-candles", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("returns normalized Yahoo ^GSPC candles for source=index", async () => {
+    const fetchMock = mockYahooFetch({
+      "^GSPC": { body: yahooChart("^GSPC") }
+    });
+    const { GET } = await importRoute();
+
+    const response = await GET(requestFor("http://localhost/api/market-candles?symbol=SPX500&source=index"));
+    const result = await readResult(response);
+
+    expect(response.status).toBe(200);
+    expect(result).toMatchObject({
+      ok: true,
+      displaySource: "index",
+      providerSymbol: "^GSPC",
+      sourceLabel: "S&P 500 Index",
+      sessionLabel: "Regular session"
+    });
+    expect(result.candles.every((candle) => candle.symbol === "^GSPC" && !candle.isProxy)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns normalized Yahoo ES=F candles for source=futures", async () => {
+    const fetchMock = mockYahooFetch({
+      "ES=F": { body: yahooChart("ES=F", 7367.5) }
+    });
+    const { GET } = await importRoute();
+
+    const response = await GET(requestFor("http://localhost/api/market-candles?symbol=SPX500&source=futures"));
+    const result = await readResult(response);
+
+    expect(response.status).toBe(200);
+    expect(result).toMatchObject({
+      ok: true,
+      displaySource: "futures",
+      providerSymbol: "ES=F",
+      sourceLabel: "E-Mini S&P 500 Futures",
+      sessionLabel: "CME delayed / extended hours",
+      isProxy: false
+    });
+    expect(result.candles).toHaveLength(2);
+    expect(result.candles.every((candle) => candle.symbol === "ES=F" && !candle.isProxy)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("returns 400 for unsupported requested symbols", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
@@ -162,10 +209,31 @@ describe("GET /api/market-candles", () => {
     expect(response.status).toBe(400);
     expect(result).toMatchObject({
       ok: false,
+      displaySource: "index",
       providerSymbol: null,
       candles: [],
       isProxy: false,
       error: "unsupported_market_candle_symbol"
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for unsupported chart sources", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { GET } = await importRoute();
+
+    const response = await GET(requestFor("http://localhost/api/market-candles?symbol=SPX500&source=crypto"));
+    const result = await readResult(response);
+
+    expect(response.status).toBe(400);
+    expect(result).toMatchObject({
+      ok: false,
+      displaySource: "index",
+      providerSymbol: null,
+      candles: [],
+      isProxy: false,
+      error: "unsupported_market_candle_source"
     });
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -193,6 +261,7 @@ describe("GET /api/market-candles", () => {
     expect(response.status).toBe(502);
     expect(result).toMatchObject({
       ok: false,
+      displaySource: "index",
       providerSymbol: null,
       candles: [],
       stale: false,
@@ -225,8 +294,11 @@ describe("GET /api/market-candles", () => {
     expect(response.status).toBe(200);
     expect(result).toMatchObject({
       ok: true,
+      displaySource: "index",
       providerSymbol: "SPY",
       source: "Yahoo Finance",
+      sourceLabel: "SPY ETF proxy",
+      sessionLabel: "Regular session",
       isProxy: true,
       proxyFor: "^GSPC"
     });
@@ -256,6 +328,7 @@ describe("GET /api/market-candles", () => {
     expect(response.status).toBe(502);
     expect(result).toMatchObject({
       ok: false,
+      displaySource: "index",
       providerSymbol: null,
       candles: [],
       stale: false,

@@ -94,7 +94,9 @@
 - [x] Wire validated market candles into Market Overview chart rendering after chart-library approval.
 - [x] Refine Market Overview candlestick visual integration inside the existing dashboard frame.
 - [x] Align Market Overview candlestick palette with the dashboard positive/negative color language.
-- [ ] Add chart controls or symbol switching after live SPX rendering is stable.
+- [x] Verify Yahoo Finance `ES=F` 30-minute intraday support for extended-hours Market Overview context.
+- [x] Add compact Market Overview chart source toggle for `Index` / `Futures`.
+- [ ] Consider broader chart controls only after the Index/Futures source toggle proves useful.
 - [ ] Plan FMP Economic Calendar integration for Trading Context.
 - [x] Later investigate FMP chart/candle APIs for possible SPX context support.
 - [ ] Integrate gamma image/levels provider or upload workflow after manual gamma state exists.

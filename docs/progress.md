@@ -742,6 +742,18 @@
 - Extended tests for explicit capture writes, overwrite behavior, date isolation, one-candidate capture safety, and integrated hydration click-to-persist behavior.
 - Confirmed route/cache hydration alone does not write live data into `DailyDashboardSnapshot`.
 
+## Market Overview Index/Futures Chart Source Toggle - 2026-05-06
+
+- Added `source=index` and `source=futures` support to `/api/market-candles` while preserving `symbol=SPX500`, `interval=30m`, and the current `range=5d`.
+- `Index` maps to Yahoo `^GSPC` with `S&P 500 Index` / `Regular session` metadata and remains the default when no `source` query parameter is provided.
+- `Futures` maps to Yahoo `ES=F` with `E-Mini S&P 500 Futures` / `CME delayed / extended hours` metadata.
+- Added a compact `Index` / `Futures` toggle inside the Market Overview chart header; switching sources refetches candles through the server route.
+- Preserved the existing chart layout, mock fallback, live Lightweight Charts renderer, resize behavior, and volume histogram.
+- Left `/api/market-quotes`, watchlist symbols, DailyDashboardSnapshot persistence, auth, and dependencies unchanged.
+- Documented the Futures source as a CME delayed E-Mini S&P 500 futures proxy for extended-hours context, not an official SPX index read.
+- Added route and component tests for source mapping, invalid source handling, ES=F client validation, and default Index hydration behavior.
+- Verification passed: `npm run test`, `npm run typecheck`, `npm run build`, and `npm run verify`.
+
 ## Next Steps
 
 - Expand tests into focused interaction smoke coverage and view-model adapters before broadening source inputs further.

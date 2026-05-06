@@ -2174,3 +2174,41 @@ Sample reviewed terminal values from the verification run:
   - `npm run test`: 22 test files, 181 tests.
   - `npm run typecheck`.
   - `npm run build`.
+
+## Market Overview Index/Futures Chart Source Toggle - 2026-05-06
+
+### Route And Types
+
+- Expanded `/api/market-candles` to accept `source=index` and `source=futures` while keeping `symbol=SPX500`, `interval=30m`, and the existing `range=5d` behavior.
+- `source=index` maps to Yahoo `^GSPC`, `sourceLabel: S&P 500 Index`, and `sessionLabel: Regular session`.
+- `source=futures` maps to Yahoo `ES=F`, `sourceLabel: E-Mini S&P 500 Futures`, and `sessionLabel: CME delayed / extended hours`.
+- Missing `source` defaults to `index`; unsupported source values return a controlled `400` with `unsupported_market_candle_source`.
+- The optional SPY proxy fallback remains scoped to the `index` source only and still requires `MARKET_CANDLES_ENABLE_SPY_PROXY=true`.
+- Candle types and client validation now allow provider symbols `^GSPC`, `SPY`, and `ES=F`.
+
+### Client Toggle
+
+- Added a compact `Index` / `Futures` toggle inside the Market Overview chart header.
+- `Index` is selected by default and fetches `/api/market-candles?symbol=SPX500&source=index`.
+- `Futures` fetches `/api/market-candles?symbol=SPX500&source=futures`.
+- The chart metadata now renders the route-provided `sourceLabel` and `sessionLabel`, for example `S&P 500 Index / 30M / Regular session / Yahoo Finance / Live` or `E-Mini S&P 500 Futures / 30M / CME delayed / extended hours / Yahoo Finance / Live`.
+- The mock SVG fallback, live `lightweight-charts` rendering path, resize behavior, and chart layout are preserved.
+
+### Boundaries
+
+- No `/api/market-quotes` behavior changed.
+- No watchlist symbols changed.
+- No candle data is written into `DailyDashboardSnapshot`.
+- No auth behavior, dependencies, websocket feed, or broader dashboard layout changed.
+- The Futures source is explicitly a CME delayed E-Mini S&P 500 futures proxy for extended-hours context, not an official SPX index read.
+
+### Tests
+
+- Added route coverage for `source=index`, `source=futures`, invalid source handling, `^GSPC` mapping, and `ES=F` mapping.
+- Added client chart coverage for default Index fetching, Futures toggle fetching, ES=F validation/rendering, and updated source labels.
+- Updated DashboardShell hydration coverage for the default `source=index` candle request.
+- Verification passed:
+  - `npm run test`: 20 test files, 180 tests.
+  - `npm run typecheck`.
+  - `npm run build`.
+  - `npm run verify`.

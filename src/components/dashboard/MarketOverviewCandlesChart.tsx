@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { isMarketCandlesFetchResult } from "@/lib/marketCandleValidation";
-import type { MarketCandle, MarketCandlesFetchResult } from "@/types/marketCandles";
+import type { MarketCandle, MarketCandleDisplaySource, MarketCandlesFetchResult } from "@/types/marketCandles";
 import type { HistogramData, IChartApi, UTCTimestamp } from "lightweight-charts";
 
 interface MarketOverviewCandlesChartProps {
@@ -17,6 +17,26 @@ const chartPalette = {
   bearishLine: "rgba(102, 217, 157, 0.5)",
   bearishVolume: "rgba(35, 40, 43, 1)"
 } as const;
+
+const chartSourceOptions: Array<{
+  label: string;
+  sourceLabel: string;
+  sessionLabel: string;
+  value: MarketCandleDisplaySource;
+}> = [
+  {
+    label: "Index",
+    sourceLabel: "S&P 500 Index",
+    sessionLabel: "Regular session",
+    value: "index"
+  },
+  {
+    label: "Futures",
+    sourceLabel: "E-Mini S&P 500 Futures",
+    sessionLabel: "CME delayed / extended hours",
+    value: "futures"
+  }
+];
 
 function toCandlestickData(candles: MarketCandle[]) {
   return candles.map((candle) => ({
@@ -41,18 +61,23 @@ function toVolumeData(candles: MarketCandle[]): HistogramData[] {
 }
 
 function getStatusLabel(result: MarketCandlesFetchResult) {
-  return result.isProxy && result.providerSymbol === "SPY"
-    ? "SPX500 proxy via SPY / 30m / Yahoo Finance / Live"
-    : "SPX500 / 30m / Yahoo Finance / Live";
+  return `${result.sourceLabel} / 30M / ${result.sessionLabel} / Yahoo Finance / Live`;
+}
+
+function getLoadingStatusLabel(source: MarketCandleDisplaySource) {
+  const sourceOption = chartSourceOptions.find((option) => option.value === source) ?? chartSourceOptions[0];
+
+  return `${sourceOption.sourceLabel} / 30M / ${sourceOption.sessionLabel} / Yahoo Finance`;
 }
 
 export function MarketOverviewCandlesChart({ fallback }: MarketOverviewCandlesChartProps) {
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
+  const [chartSource, setChartSource] = useState<MarketCandleDisplaySource>("index");
   const [candlesResult, setCandlesResult] = useState<MarketCandlesFetchResult | null>(null);
   const [isRendered, setIsRendered] = useState(false);
   const statusLabel = useMemo(
-    () => candlesResult ? getStatusLabel(candlesResult) : null,
-    [candlesResult]
+    () => candlesResult ? getStatusLabel(candlesResult) : getLoadingStatusLabel(chartSource),
+    [candlesResult, chartSource]
   );
 
   useEffect(() => {
@@ -60,8 +85,11 @@ export function MarketOverviewCandlesChart({ fallback }: MarketOverviewCandlesCh
     const controller = new AbortController();
 
     async function loadCandles() {
+      setIsRendered(false);
+      setCandlesResult(null);
+
       try {
-        const response = await fetch("/api/market-candles?symbol=SPX500", {
+        const response = await fetch(`/api/market-candles?symbol=SPX500&source=${chartSource}`, {
           cache: "no-store",
           signal: controller.signal
         });
@@ -92,7 +120,7 @@ export function MarketOverviewCandlesChart({ fallback }: MarketOverviewCandlesCh
       isMounted = false;
       controller.abort();
     };
-  }, []);
+  }, [chartSource]);
 
   useEffect(() => {
     if (!candlesResult || candlesResult.candles.length === 0) {
@@ -250,14 +278,27 @@ export function MarketOverviewCandlesChart({ fallback }: MarketOverviewCandlesCh
 
   return (
     <div className="marketCandlesChart" data-live-chart={isRendered ? "ready" : "fallback"}>
+      <div className="marketCandlesChart__meta">
+        <span>{statusLabel}</span>
+        <div className="marketCandlesChart__sourceToggle" role="group" aria-label="Market Overview chart source">
+          {chartSourceOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={option.value === chartSource ? "marketCandlesChart__sourceButton marketCandlesChart__sourceButton--active" : "marketCandlesChart__sourceButton"}
+              aria-pressed={option.value === chartSource}
+              onClick={() => setChartSource(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className={isRendered ? "marketCandlesChart__fallback marketCandlesChart__fallback--hidden" : "marketCandlesChart__fallback"}>
         {fallback}
       </div>
       {candlesResult ? (
         <div className={isRendered ? "marketCandlesChart__live marketCandlesChart__live--ready" : "marketCandlesChart__live"} aria-label="SPX500 30 minute candlestick chart">
-          <div className="marketCandlesChart__meta">
-            <span>{statusLabel}</span>
-          </div>
           <div ref={chartContainerRef} className="marketCandlesChart__canvas" />
         </div>
       ) : null}

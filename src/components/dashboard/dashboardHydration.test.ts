@@ -223,14 +223,17 @@ function createFetchMock() {
       } as Response;
     }
 
-    if (url === "/api/market-candles?symbol=SPX500") {
+    if (url === "/api/market-candles?symbol=SPX500&source=index") {
       return {
         ok: true,
         json: async () => ({
           ok: false,
           displaySymbol: "SPX500",
           requestedSymbol: "SPX500",
+          displaySource: "index",
           providerSymbol: null,
+          sourceLabel: "S&P 500 Index",
+          sessionLabel: "Regular session",
           source: "Yahoo Finance",
           interval: "30m",
           range: "5d",
@@ -328,7 +331,7 @@ describe("DashboardShell hydration", () => {
       expect.objectContaining({ cache: "no-store" })
     );
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/market-candles?symbol=SPX500",
+      "/api/market-candles?symbol=SPX500&source=index",
       expect.objectContaining({ cache: "no-store" })
     );
     expect(text).toContain("Market Overview");

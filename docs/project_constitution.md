@@ -38,6 +38,9 @@
 - `MarketSituationModule` must render mock-first and hydrate market quote data only after client mount.
 - MVP market quotes should use only verified symbols: FMP `ESUSD` primary and `^GSPC` fallback for `SPX500`, Twelve Data `XAU/USD` primary and FMP `GCUSD` fallback for `XAUUSD`, FMP `^VIX` for `VIX`, FMP `EURUSD` for `EURUSD`, Twelve Data `CAD/USD` for `CADUSD`, and FMP `BTCUSD` primary with Twelve Data `BTC/USD` fallback for `BTCUSDT`.
 - Current market quote watchlist order is `SPX500`, `XAUUSD`, `VIX`, `EURUSD`, `CADUSD`, and `BTCUSDT`.
+- Market Overview candles use Yahoo Finance through `/api/market-candles`; the chart source toggle supports `Index` as default Yahoo `^GSPC` and `Futures` as Yahoo `ES=F`.
+- The Market Overview `Futures` chart source is an E-Mini S&P 500 futures proxy with CME delayed / extended-hours context, not an official SPX index read.
+- Market Overview candle source selection affects only chart candles and must not change `/api/market-quotes`, watchlist symbols, or `DailyDashboardSnapshot`.
 - Live integrations must preserve mock fallback behavior when provider, route, cache, or client fetch state is unavailable.
 - `src/data/mockDashboardData.ts` provides the server-rendered mock view-model data; Performance Review can hydrate from imported local account equity history after client mount.
 - Shared visual primitives belong in `src/components/ui`.
@@ -103,8 +106,10 @@
 - CoinMarketCap Fear & Greed normalization is defined in `src/lib/fearGreedNormalization.ts`.
 - Browser stale cache helpers for Fear & Greed are defined in `src/lib/fearGreedStorage.ts`.
 - Market quote source/API contracts are defined in `src/types/marketQuotes.ts`.
+- Market candle source/API contracts are defined in `src/types/marketCandles.ts`.
 - Financial Modeling Prep quote normalization is defined in `src/lib/fmpQuoteNormalization.ts`.
 - Twelve Data quote normalization is defined in `src/lib/twelveQuoteNormalization.ts`.
+- Yahoo Finance candle normalization is defined in `src/lib/yahooCandleNormalization.ts`.
 - Browser stale cache helpers for market quotes are defined in `src/lib/marketQuoteStorage.ts`.
 - Gamma snapshot defaults and normalization helpers are defined in `src/lib/gammaSnapshot.ts`.
 - The persistence root is `DailyDashboardSnapshot`.

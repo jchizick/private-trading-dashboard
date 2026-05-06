@@ -4808,6 +4808,7 @@ body {
   position: relative;
   z-index: 1;
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-height: inherit;
   background:
     linear-gradient(90deg, rgba(102, 113, 111, 0.028) 1px, transparent 1px),
@@ -4818,6 +4819,7 @@ body {
 .marketCandlesChart__fallback {
   position: relative;
   z-index: 2;
+  grid-row: 2;
 }
 
 .marketCandlesChart__fallback--hidden {
@@ -4832,7 +4834,8 @@ body {
   inset: 0;
   z-index: 1;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-row: 2;
+  grid-template-rows: minmax(0, 1fr);
   min-height: 100%;
   padding: 0;
   opacity: 0;
@@ -4850,6 +4853,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  grid-row: 1;
+  gap: 10px;
   min-height: 24px;
   margin-bottom: 3px;
   padding: 0 2px 5px;
@@ -4866,6 +4871,46 @@ body {
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.marketCandlesChart__sourceToggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(48, 59, 62, 0.72);
+  border-radius: 3px;
+  background: rgba(5, 10, 11, 0.64);
+}
+
+.marketCandlesChart__sourceButton {
+  min-height: 19px;
+  padding: 0 7px;
+  border: 0;
+  border-right: 1px solid rgba(48, 59, 62, 0.58);
+  color: rgba(138, 153, 148, 0.84);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 620;
+  line-height: 1;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.marketCandlesChart__sourceButton:last-child {
+  border-right: 0;
+}
+
+.marketCandlesChart__sourceButton:hover,
+.marketCandlesChart__sourceButton:focus-visible {
+  color: var(--text);
+  background: rgba(54, 189, 126, 0.06);
+  outline: none;
+}
+
+.marketCandlesChart__sourceButton--active {
+  color: var(--accent-strong);
+  background: rgba(54, 189, 126, 0.1);
 }
 
 .marketCandlesChart__canvas {

@@ -23,7 +23,7 @@ function isMarketCandle(value: unknown): value is MarketCandle {
     isFiniteNumber(candle.close) &&
     isNullableFiniteNumber(candle.volume) &&
     candle.source === "Yahoo Finance" &&
-    (candle.symbol === "^GSPC" || candle.symbol === "SPY") &&
+    (candle.symbol === "^GSPC" || candle.symbol === "SPY" || candle.symbol === "ES=F") &&
     typeof candle.isProxy === "boolean"
   );
 }
@@ -39,7 +39,10 @@ export function isMarketCandlesFetchResult(value: unknown): value is MarketCandl
     typeof result.ok === "boolean" &&
     result.displaySymbol === "SPX500" &&
     result.requestedSymbol === "SPX500" &&
-    (result.providerSymbol === "^GSPC" || result.providerSymbol === "SPY" || result.providerSymbol === null) &&
+    (result.displaySource === "index" || result.displaySource === "futures") &&
+    (result.providerSymbol === "^GSPC" || result.providerSymbol === "SPY" || result.providerSymbol === "ES=F" || result.providerSymbol === null) &&
+    typeof result.sourceLabel === "string" &&
+    typeof result.sessionLabel === "string" &&
     result.source === "Yahoo Finance" &&
     result.interval === "30m" &&
     typeof result.range === "string" &&

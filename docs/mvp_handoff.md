@@ -162,6 +162,14 @@ Market snapshot capture behavior:
 - Capturing again overwrites the active date's prior captured market and sentiment fields without a confirmation modal.
 - Source and status labels are preserved exactly, so mock, cached, partial, and live reads remain distinguishable.
 
+Market Overview chart behavior:
+
+- Market Overview candles load through `/api/market-candles`; no provider key is exposed to browser code.
+- The chart source toggle defaults to `Index`, which maps to Yahoo `^GSPC`.
+- `Futures` maps to Yahoo `ES=F` for E-Mini S&P 500 futures context.
+- Futures candles are labeled as `E-Mini S&P 500 Futures` with `CME delayed / extended hours`; they are a futures proxy, not official SPX index data.
+- The chart source toggle affects only chart candles and does not change watchlist quotes or write candle data into `DailyDashboardSnapshot`.
+
 ## Import Workflows
 
 ### Account Equity CSV
@@ -343,7 +351,6 @@ Server memory caches:
 - No XLSX import.
 - No Gamma screenshot upload, OCR, source URL workflow, or X/Twitter scraping.
 - No websocket feed.
-- No real candle/chart feed.
 - Captured market snapshot display is still minimal; richer historical comparison views are deferred.
 
 ## Recommended Roadmap

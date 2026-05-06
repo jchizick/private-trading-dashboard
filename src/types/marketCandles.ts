@@ -1,8 +1,10 @@
 export type MarketCandleSource = "Yahoo Finance";
 
-export type MarketCandleProviderSymbol = "^GSPC" | "SPY";
+export type MarketCandleProviderSymbol = "^GSPC" | "SPY" | "ES=F";
 
 export type MarketCandleDisplaySymbol = "SPX500";
+
+export type MarketCandleDisplaySource = "index" | "futures";
 
 export type MarketCandleInterval = "30m";
 
@@ -22,7 +24,10 @@ export interface MarketCandlesFetchResult {
   ok: boolean;
   displaySymbol: MarketCandleDisplaySymbol;
   requestedSymbol: MarketCandleDisplaySymbol;
+  displaySource: MarketCandleDisplaySource;
   providerSymbol: MarketCandleProviderSymbol | null;
+  sourceLabel: string;
+  sessionLabel: string;
   source: MarketCandleSource;
   interval: MarketCandleInterval;
   range: string;
