@@ -754,6 +754,18 @@
 - Added route and component tests for source mapping, invalid source handling, ES=F client validation, and default Index hydration behavior.
 - Verification passed: `npm run test`, `npm run typecheck`, `npm run build`, and `npm run verify`.
 
+## Gamma Context Local Image Upload - 2026-05-06
+
+- Added a compact Gamma Context image upload/dropzone for the manual `@gexbot15` daily chart workflow.
+- Accepted local image types are PNG, JPEG, and WEBP with a 3 MB max size.
+- Uploaded images render in the existing Gamma chart area using `DailyDashboardSnapshot.gamma.distributionImageUrl`; the mock gamma distribution remains the fallback when no image is saved.
+- Uploading stores a browser-safe data URL in the active date's daily snapshot localStorage entry, sets Gamma source to `uploaded_image`, preserves/defaults source name to `@gexbot15`, and updates Gamma/root timestamps.
+- Clearing the image removes only `distributionImageUrl`, preserves manual gamma levels and last checked values, and persists the active date snapshot.
+- Date switching remains isolated by the existing `market-command:daily-snapshot:${date}` key, so one date's uploaded image does not affect another date.
+- Added tests for valid upload persistence, date-specific image loading, clear-image behavior, manual level preservation, invalid file type rejection, and oversized-file validation.
+- Did not add OCR, X/Twitter scraping, auto gamma extraction, server upload, Supabase/storage, API route changes, market chart changes, or Performance Review changes.
+- Verification passed: `npm run test` with 21 test files and 185 tests, `npm run typecheck`, `npm run build`, and `npm run verify`.
+
 ## Next Steps
 
 - Expand tests into focused interaction smoke coverage and view-model adapters before broadening source inputs further.
@@ -762,5 +774,5 @@
 - Consider a fuller import history/clear confirmation flow after the MVP import path proves useful.
 - Choose private persistence strategy for manual notes and context snapshots.
 - Decide the first live market data source, starting with SPX.
-- Later add source reference or screenshot upload for Gamma after manual numeric entry is proven.
+- Consider a later Gamma source reference URL or durable image storage workflow only after local upload proves useful.
 - Consider Supabase or another durable sync layer only after local workflows stabilize.

@@ -2212,3 +2212,38 @@ Sample reviewed terminal values from the verification run:
   - `npm run typecheck`.
   - `npm run build`.
   - `npm run verify`.
+
+## Gamma Context Local Image Upload - 2026-05-06
+
+### Workflow
+
+- Gamma Context now supports a compact click-to-upload and drag-and-drop image area for the manual `@gexbot15` daily gamma chart.
+- Accepted files are `image/png`, `image/jpeg`, and `image/webp`; files larger than 3 MB are rejected with compact inline copy.
+- The uploaded image previews inside the existing Gamma chart frame with aspect ratio preserved.
+- When no image is saved for the active date, the existing mock gamma distribution remains the visual fallback.
+
+### Persistence
+
+- The upload uses the existing `DailyDashboardSnapshot.gamma.distributionImageUrl` field.
+- The image is stored as a browser-local data URL inside the active date's `market-command:daily-snapshot:${date}` localStorage object.
+- Uploading updates root `updatedAt`, `gamma.updatedAt`, marks the snapshot saved, sets `gamma.source` to `uploaded_image`, and preserves/defaults `gamma.sourceName` to `@gexbot15`.
+- Manual Gamma fields are preserved on upload and clear: Major Positive Gamma, Major Negative Gamma, Zero Gamma / Flip, captured/last checked time, status, regime, and source name are not overwritten.
+- Clearing removes only `distributionImageUrl` from the active date's Gamma snapshot and restores `source` to `manual` when the prior source was `uploaded_image`.
+- Date switching loads the selected date's saved `distributionImageUrl`, so image uploads remain date-specific.
+
+### Boundaries
+
+- No OCR was added.
+- No X/Twitter scraping was added.
+- No gamma values are auto-extracted from the image.
+- No server upload, Supabase/storage, API route, market chart/candle, Performance Review, dependency, or dashboard redesign change was added.
+
+### Tests
+
+- Added `GammaContextModule`/`DailySnapshotProvider` interaction coverage for valid image upload, localStorage persistence, date-specific image loading, clear-image behavior, and invalid file type rejection.
+- Added helper validation coverage for oversized image rejection.
+- Verification passed:
+  - `npm run test`: 21 test files, 185 tests.
+  - `npm run typecheck`.
+  - `npm run build`.
+  - `npm run verify`.

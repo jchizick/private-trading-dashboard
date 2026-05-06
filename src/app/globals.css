@@ -2583,6 +2583,23 @@ body {
   min-height: 278px;
 }
 
+.gammaImagePreview {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-height: 270px;
+}
+
+.gammaImagePreview img {
+  display: block;
+  max-width: 100%;
+  max-height: 272px;
+  border: 1px solid rgba(39, 55, 56, 0.74);
+  border-radius: 3px;
+  object-fit: contain;
+}
+
 .gammaChart__grid path {
   stroke: rgba(138, 153, 148, 0.105);
 }
@@ -2671,6 +2688,77 @@ body {
   justify-content: flex-end;
   align-items: center;
   gap: 5px;
+}
+
+.gammaImageUpload {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.gammaImageUpload__dropzone {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border: 1px solid rgba(39, 55, 56, 0.86);
+  border-radius: var(--radius);
+  background: rgba(7, 13, 14, 0.82);
+  cursor: pointer;
+}
+
+.gammaImageUpload__dropzone--active,
+.gammaImageUpload__dropzone:focus-within {
+  border-color: rgba(54, 189, 126, 0.42);
+  background: rgba(54, 189, 126, 0.06);
+}
+
+.gammaImageUpload__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gammaImageUpload__dropzone span,
+.gammaImageUpload__dropzone small,
+.gammaImageUpload__error {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+
+.gammaImageUpload__dropzone span {
+  color: var(--text-faint);
+  font-size: 0.52rem;
+}
+
+.gammaImageUpload__dropzone strong {
+  overflow: hidden;
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gammaImageUpload__dropzone small {
+  color: rgba(95, 110, 105, 0.9);
+  font-size: 0.5rem;
+  white-space: nowrap;
+}
+
+.gammaImageUpload__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--negative);
+  font-size: 0.56rem;
 }
 
 .gammaEditStack {

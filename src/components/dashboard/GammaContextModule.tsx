@@ -1,12 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type DragEvent
+} from "react";
 import { useDailySnapshot } from "@/components/dashboard/DailySnapshotProvider";
 import { getGammaTone } from "@/lib/marketStatus";
 import { SectionPanel } from "@/components/ui/SectionPanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { PlaceholderFrame } from "@/components/ui/PlaceholderFrame";
 import { formatPrice } from "@/lib/formatters";
+import {
+  GAMMA_IMAGE_ACCEPTED_TYPES,
+  readGammaImageFileAsDataUrl,
+  validateGammaImageFile
+} from "@/lib/gammaImageUpload";
 import type { GammaSnapshot, GammaStatus } from "@/types/dailySnapshot";
 import type { GammaContext } from "@/types/dashboard";
 
@@ -36,6 +46,7 @@ const gammaStatusOptions: GammaStatus[] = [
   "unavailable",
   "market_closed"
 ];
+const gammaImageAccept = GAMMA_IMAGE_ACCEPTED_TYPES.join(",");
 
 interface GammaDraft {
   majorPositiveGamma: string;
@@ -129,11 +140,15 @@ export function GammaContextModule({ gamma }: GammaContextModuleProps) {
   const [isEditingGamma, setIsEditingGamma] = useState(false);
   const [draftGamma, setDraftGamma] = useState<GammaDraft>(() => createDraftFromGamma(savedGamma));
   const [gammaError, setGammaError] = useState<string | null>(null);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const [isImageDragActive, setIsImageDragActive] = useState(false);
 
   useEffect(() => {
     setDraftGamma(createDraftFromGamma(savedGamma));
     setIsEditingGamma(false);
     setGammaError(null);
+    setImageUploadError(null);
+    setIsImageDragActive(false);
   }, [activeDate, savedGamma]);
 
   function beginGammaEdit() {
@@ -204,6 +219,77 @@ export function GammaContextModule({ gamma }: GammaContextModuleProps) {
     setIsEditingGamma(false);
   }
 
+  async function uploadGammaImage(file: File) {
+    const validation = validateGammaImageFile(file);
+
+    if (!validation.ok) {
+      setImageUploadError(validation.error);
+      return;
+    }
+
+    try {
+      const imageUrl = await readGammaImageFileAsDataUrl(file);
+      const now = new Date().toISOString();
+
+      updateSnapshot((snapshot) => ({
+        ...snapshot,
+        status: "saved" as const,
+        updatedAt: now,
+        gamma: {
+          ...snapshot.gamma,
+          source: "uploaded_image",
+          sourceName: snapshot.gamma.sourceName || "@gexbot15",
+          distributionImageUrl: imageUrl,
+          updatedAt: now
+        }
+      }));
+      setImageUploadError(null);
+    } catch {
+      setImageUploadError("Could not read the selected image.");
+    }
+  }
+
+  function handleGammaImageInputChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (file) {
+      void uploadGammaImage(file);
+    }
+  }
+
+  function handleGammaImageDrop(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setIsImageDragActive(false);
+
+    const file = event.dataTransfer.files?.[0];
+
+    if (file) {
+      void uploadGammaImage(file);
+    }
+  }
+
+  function clearGammaImage() {
+    const now = new Date().toISOString();
+
+    updateSnapshot((snapshot) => {
+      const { distributionImageUrl, ...gammaWithoutImage } = snapshot.gamma;
+
+      return {
+        ...snapshot,
+        status: "saved" as const,
+        updatedAt: now,
+        gamma: {
+          ...gammaWithoutImage,
+          source: snapshot.gamma.source === "uploaded_image" ? "manual" : snapshot.gamma.source,
+          sourceName: snapshot.gamma.sourceName || "@gexbot15",
+          updatedAt: now
+        }
+      };
+    });
+    setImageUploadError(null);
+  }
+
   return (
     <SectionPanel
       title="Gamma Context"
@@ -234,54 +320,93 @@ export function GammaContextModule({ gamma }: GammaContextModuleProps) {
         meta={`Last checked ${formatLastChecked(savedGamma.capturedAt)}`}
         variant="gamma"
       >
-        <svg className="gammaChart" viewBox="0 0 360 260" role="img">
-          <g className="gammaChart__grid">
-            <path d="M42 26H328M42 62H328M42 98H328M42 134H328M42 170H328M42 206H328" />
-            <path d="M180 18V224M92 18V224M268 18V224" />
-          </g>
-          {gammaDistribution.map((level, index) => {
-            const y = 30 + index * 17;
-            const width = Math.abs(level.exposure) * 1.55;
-            const priorWidth = Math.abs(level.prior) * 1.15;
-            const isPositive = level.exposure >= 0;
-            const x = isPositive ? 180 : 180 - width;
-            const priorX = level.prior >= 0 ? 180 : 180 - priorWidth;
+        {savedGamma.distributionImageUrl ? (
+          <div className="gammaImagePreview">
+            {/* Data URL is intentionally local-only MVP state from DailyDashboardSnapshot.gamma. */}
+            <img src={savedGamma.distributionImageUrl} alt="Uploaded gamma chart for active date" />
+          </div>
+        ) : (
+          <svg className="gammaChart" viewBox="0 0 360 260" role="img">
+            <g className="gammaChart__grid">
+              <path d="M42 26H328M42 62H328M42 98H328M42 134H328M42 170H328M42 206H328" />
+              <path d="M180 18V224M92 18V224M268 18V224" />
+            </g>
+            {gammaDistribution.map((level, index) => {
+              const y = 30 + index * 17;
+              const width = Math.abs(level.exposure) * 1.55;
+              const priorWidth = Math.abs(level.prior) * 1.15;
+              const isPositive = level.exposure >= 0;
+              const x = isPositive ? 180 : 180 - width;
+              const priorX = level.prior >= 0 ? 180 : 180 - priorWidth;
 
-            return (
-              <g key={level.strike} className="gammaChart__strike">
-                <text x="132" y={y + 4}>{level.strike}</text>
-                <rect
-                  className={isPositive ? "gammaChart__bar gammaChart__bar--positive" : "gammaChart__bar gammaChart__bar--negative"}
-                  x={x}
-                  y={y}
-                  width={width}
-                  height="5"
-                  rx="2.5"
-                />
-                <rect
-                  className="gammaChart__prior"
-                  x={priorX}
-                  y={y + 7}
-                  width={priorWidth}
-                  height="3"
-                  rx="1.5"
-                />
-                <circle className="gammaChart__dot" cx={x + (isPositive ? width * 0.68 : width * 0.32)} cy={y + 2.5} r="2.1" />
-              </g>
-            );
-          })}
-          <path className="gammaChart__zeroLine" d="M42 132H328" />
-          <path className="gammaChart__positiveLine" d="M42 115H328" />
-          <path className="gammaChart__negativeLine" d="M42 149H328" />
-          <g className="gammaChart__axis">
-            <text x="42" y="246">-80</text>
-            <text x="174" y="246">0</text>
-            <text x="300" y="246">+80</text>
-            <text x="128" y="15">Strike</text>
-            <text x="214" y="15">Gamma Exposure</text>
-          </g>
-        </svg>
+              return (
+                <g key={level.strike} className="gammaChart__strike">
+                  <text x="132" y={y + 4}>{level.strike}</text>
+                  <rect
+                    className={isPositive ? "gammaChart__bar gammaChart__bar--positive" : "gammaChart__bar gammaChart__bar--negative"}
+                    x={x}
+                    y={y}
+                    width={width}
+                    height="5"
+                    rx="2.5"
+                  />
+                  <rect
+                    className="gammaChart__prior"
+                    x={priorX}
+                    y={y + 7}
+                    width={priorWidth}
+                    height="3"
+                    rx="1.5"
+                  />
+                  <circle className="gammaChart__dot" cx={x + (isPositive ? width * 0.68 : width * 0.32)} cy={y + 2.5} r="2.1" />
+                </g>
+              );
+            })}
+            <path className="gammaChart__zeroLine" d="M42 132H328" />
+            <path className="gammaChart__positiveLine" d="M42 115H328" />
+            <path className="gammaChart__negativeLine" d="M42 149H328" />
+            <g className="gammaChart__axis">
+              <text x="42" y="246">-80</text>
+              <text x="174" y="246">0</text>
+              <text x="300" y="246">+80</text>
+              <text x="128" y="15">Strike</text>
+              <text x="214" y="15">Gamma Exposure</text>
+            </g>
+          </svg>
+        )}
       </PlaceholderFrame>
+
+      <div className="gammaImageUpload" aria-label="Gamma chart image upload">
+        <label
+          className={`gammaImageUpload__dropzone${isImageDragActive ? " gammaImageUpload__dropzone--active" : ""}`}
+          onDragEnter={(event) => {
+            event.preventDefault();
+            setIsImageDragActive(true);
+          }}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setIsImageDragActive(true);
+          }}
+          onDragLeave={() => setIsImageDragActive(false)}
+          onDrop={handleGammaImageDrop}
+        >
+          <input
+            className="gammaImageUpload__input"
+            type="file"
+            accept={gammaImageAccept}
+            onChange={handleGammaImageInputChange}
+          />
+          <span>Gamma Image</span>
+          <strong>{savedGamma.distributionImageUrl ? "Image saved for date" : "Upload / drop image"}</strong>
+          <small>PNG, JPG, WEBP / max 3 MB</small>
+        </label>
+        {savedGamma.distributionImageUrl ? (
+          <button className="terminalButton" type="button" onClick={clearGammaImage}>
+            Clear Image
+          </button>
+        ) : null}
+        {imageUploadError ? <p className="gammaImageUpload__error">{imageUploadError}</p> : null}
+      </div>
 
       {isEditingGamma ? (
         <div className="gammaEditStack">

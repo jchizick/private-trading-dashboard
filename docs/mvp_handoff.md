@@ -139,7 +139,8 @@ Use the dashboard as a daily command read:
 3. Edit Synthesis Notes with the current bias, what matters today, conditions to watch, invalidation, and operator note.
 4. Toggle Trading Checklist items as external tools are checked.
 5. Around the 10:05 AM ET gamma check convention, edit Gamma Snapshot with Major Positive Gamma, Major Negative Gamma, Zero Gamma / Flip, status, and last checked time.
-6. Save edits into the date-specific daily snapshot.
+6. Upload or drag in the daily `@gexbot15` gamma chart image when useful for visual reference.
+7. Save edits into the date-specific daily snapshot.
 
 Date behavior:
 
@@ -152,6 +153,10 @@ Gamma behavior:
 
 - Gamma values persist inside `DailyDashboardSnapshot.gamma`.
 - There is no separate Gamma storage key.
+- Uploaded Gamma chart images persist inside `DailyDashboardSnapshot.gamma.distributionImageUrl` as local browser data URLs.
+- Gamma image upload is manual/local only: no OCR, no X/Twitter scraping, no server upload, and no auto-extracted gamma levels.
+- Uploaded Gamma images are date-specific because they live in the active date's daily snapshot key.
+- Clearing a Gamma image removes only `distributionImageUrl` and preserves manual gamma levels.
 - Weekend drafts default to `market_closed`.
 - Weekday drafts default to `pending` before 10:05 AM ET and `not_checked` after 10:05 AM ET when no manual gamma levels exist.
 

@@ -18,7 +18,9 @@
 - Daily snapshots should store point-in-time review summaries and daily context, not full equity history or full trade ledgers.
 - Static checklist definitions and external tool default links should remain configuration, while daily checklist statuses belong to saved snapshots.
 - Daily Gamma Context values belong to `DailyDashboardSnapshot.gamma`, not a separate global cache or provider cache.
+- Manual Gamma chart images also belong to `DailyDashboardSnapshot.gamma.distributionImageUrl` as date-specific local browser data URLs for the MVP.
 - MVP Gamma Context is manual-first, based on @gexbot15 charts checked by the user; X/Twitter scraping, OCR, and provider automation are future work only.
+- Gamma image upload is an image-reference workflow only; it must not auto-extract gamma levels, scrape X/Twitter, upload files to a server, or write outside the active date's daily snapshot.
 - New manual Gamma drafts default to source `@gexbot15` and use the 10:05 AM ET check-time convention.
 - Weekend Gamma drafts should be treated as `market_closed`; no Saturday or Sunday gamma update is expected.
 - UI components must not hardcode business classification logic.

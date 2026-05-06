@@ -52,7 +52,7 @@
 - [x] Add snapshot archive concept by trading date.
 - [x] Add named-field GammaSnapshot model and legacy gamma levels normalization.
 - [x] Add manual Gamma Context edit flow.
-- [ ] Add import or upload fallback for gamma images.
+- [x] Add local upload/dropzone fallback for manual Gamma chart images.
 - [ ] Add a local review workflow for notes/tags without emphasizing PnL vanity.
 - [x] Audit complete local MVP source separation and storage key map.
 
@@ -99,7 +99,8 @@
 - [ ] Consider broader chart controls only after the Index/Futures source toggle proves useful.
 - [ ] Plan FMP Economic Calendar integration for Trading Context.
 - [x] Later investigate FMP chart/candle APIs for possible SPX context support.
-- [ ] Integrate gamma image/levels provider or upload workflow after manual gamma state exists.
+- [x] Integrate manual local gamma image upload workflow after manual gamma state exists.
+- [ ] Consider durable gamma image storage or provider integration only after local upload proves useful.
 - [x] Integrate Fear & Greed source through server-side CoinMarketCap proxy with mock/stale fallback.
 - [ ] Integrate market news and economic calendar sources after provider choice.
 - [ ] Keep external orderflow platforms as references, not duplicated tools.
