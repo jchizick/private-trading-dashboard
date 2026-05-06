@@ -69,6 +69,30 @@ describe("account equity performance calculations", () => {
     expect(performance.accountEquityChange).toBeCloseTo(211.79, 2);
   });
 
+  it("keeps source dates on display equity curve points for stable React keys", () => {
+    const review = derivePerformanceReviewSnapshot(outOfOrderHistory, {
+      asOfDate: "2026-05-03"
+    });
+    const performance = toPerformanceSnapshot(review);
+
+    expect(performance.accountEquityCurvePercent.map((point) => point.date)).toEqual([
+      "2025-12-31",
+      "2026-01-02",
+      "2026-04-10",
+      "2026-04-20",
+      "2026-05-02",
+      "2026-05-03"
+    ]);
+    expect(performance.accountEquityCurvePercent.map((point) => point.label)).toEqual([
+      "Wed",
+      "Fri",
+      "Fri",
+      "Mon",
+      "Sat",
+      "Sun"
+    ]);
+  });
+
   it("derives Max Drawdown from the equity path", () => {
     expect(calculateMaxDrawdown(outOfOrderHistory)).toBeCloseTo(-0.35, 2);
   });

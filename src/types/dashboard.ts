@@ -21,6 +21,7 @@ export type ReviewTag =
 
 export interface EquityPoint {
   label: string;
+  date?: string;
   valuePercent: number;
 }
 

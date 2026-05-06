@@ -32,6 +32,7 @@ function getAccountEquityChange(review: PerformanceReviewSnapshot) {
 function getEquityCurvePoints(review: PerformanceReviewSnapshot): EquityPoint[] {
   return review.accountEquity.equityCurvePercent.map((point) => ({
     label: dateLabel(point.date),
+    date: point.date,
     valuePercent: point.valuePercent
   }));
 }

@@ -252,7 +252,7 @@ function EquityCurve({
   const coordinates = points.map((point, index) => {
     const x = plot.left + (index / Math.max(points.length - 1, 1)) * width;
     const y = plot.bottom - ((point.valuePercent - min) / range) * height;
-    return { ...point, x, y };
+    return { ...point, key: point.date ? `${point.date}-${point.label}` : `${point.label}-${index}`, x, y };
   });
 
   const linePoints = coordinates.map((point) => `${point.x},${point.y}`).join(" ");
@@ -277,8 +277,8 @@ function EquityCurve({
             <stop offset="100%" stopColor="rgba(54, 189, 126, 0)" />
           </linearGradient>
         </defs>
-        {ticks.map((tick) => (
-          <g key={tick.label}>
+        {ticks.map((tick, index) => (
+          <g key={`${tick.label}-${index}`}>
             <line className="equityCurve__grid" x1={plot.left} x2={plot.right} y1={tick.y} y2={tick.y} />
             <text className="equityCurve__axis" x="6" y={tick.y + 3}>
               {tick.label}
@@ -287,7 +287,7 @@ function EquityCurve({
         ))}
         {coordinates.map((point) => (
           <line
-            key={point.label}
+            key={`${point.key}-grid`}
             className="equityCurve__grid equityCurve__grid--vertical"
             x1={point.x}
             x2={point.x}
@@ -903,8 +903,8 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
 
       <div className="performanceReview">
         <div className="tagRow tagRow--subtle">
-          {currentPerformance.reviewTags.map((tag) => (
-            <StatusBadge key={tag} tone={tag === "late entry" ? "warning" : "neutral"}>
+          {currentPerformance.reviewTags.map((tag, index) => (
+            <StatusBadge key={`${tag}-${index}`} tone={tag === "late entry" ? "warning" : "neutral"}>
               {tag}
             </StatusBadge>
           ))}
