@@ -3765,7 +3765,7 @@ body {
 }
 
 .performanceActionMenu__summary::after {
-  content: "v";
+  content: "\25BE";
   color: var(--text-faint);
   font-size: 0.48rem;
 }

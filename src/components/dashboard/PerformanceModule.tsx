@@ -690,22 +690,27 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
             className="performanceImportInput"
             onChange={handleTradeLedgerFileChange}
           />
-          <button className="terminalButton" type="button" onClick={openFilePicker}>
-            Import Equity CSV
-          </button>
-          <button className="terminalButton terminalButton--subtle" type="button" onClick={openTradeLedgerFilePicker}>
-            Import Trade Ledger CSV
-          </button>
-          {isUsingTradeLedgerData ? (
-            <button className="terminalButton terminalButton--subtle" type="button" onClick={clearTradeLedgerImport}>
-              Clear Trade Ledger
-            </button>
-          ) : null}
-          {isUsingImportedData ? (
-            <button className="terminalButton terminalButton--subtle" type="button" onClick={clearImport}>
-              Use Mock Data
-            </button>
-          ) : null}
+          <details className="performanceActionMenu">
+            <summary className="terminalButton performanceActionMenu__summary">Actions</summary>
+            <div className="performanceActionMenu__panel">
+              <button type="button" onClick={openFilePicker}>
+                Import Equity CSV
+              </button>
+              <button type="button" onClick={openTradeLedgerFilePicker}>
+                Import Trade Ledger CSV
+              </button>
+              {isUsingImportedData ? (
+                <button type="button" onClick={clearImport}>
+                  Use Mock Data
+                </button>
+              ) : null}
+              {isUsingTradeLedgerData ? (
+                <button type="button" onClick={clearTradeLedgerImport}>
+                  Clear Trade Ledger
+                </button>
+              ) : null}
+            </div>
+          </details>
         </div>
       }
     >
