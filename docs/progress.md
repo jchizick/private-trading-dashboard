@@ -766,6 +766,18 @@
 - Did not add OCR, X/Twitter scraping, auto gamma extraction, server upload, Supabase/storage, API route changes, market chart changes, or Performance Review changes.
 - Verification passed: `npm run test` with 21 test files and 185 tests, `npm run typecheck`, `npm run build`, and `npm run verify`.
 
+## Status And Timestamp Correctness Pass - 2026-05-06
+
+- Reworked the top navbar telemetry into a client-safe component that shows current America/Toronto dashboard time and updates every minute after hydration.
+- The navbar SPX read now uses the shared transient `SPX500` live/cached quote candidate from Market Overview when available, with the existing mock close as fallback.
+- Moved the existing `DailySnapshotProvider` boundary up around the header and grid so the navbar can read quote state without adding provider calls or writing to `DailyDashboardSnapshot`.
+- Gamma Context now renders `Last checked: not checked` instead of `n/a`, and uploaded images can use saved Gamma `capturedAt` or appropriate `updatedAt` fallback.
+- Performance Review now derives its footer timestamp from the latest account equity or trade ledger import timestamp, using import summaries first and record `importedAt` fallback when summaries are absent.
+- The Market Snapshot capture strip now shows `Market snapshot pending` for uncaptured current-day draft/default snapshots and uses the latest active saved SPX/Fear & Greed capture timestamp after explicit capture.
+- Fear & Greed continues to render the active fetched/cached snapshot `lastUpdatedAt`; no stale fixture timestamp is preferred once route/cache data hydrates.
+- Preserved storage boundaries: live quote/cache data, Fear & Greed cache, imported performance source storage, and daily snapshot persistence remain separate.
+- Added focused hydration/Gamma coverage for navbar quote/time behavior, pending capture state, imported Performance footer timestamps, and uploaded-image Gamma timestamp fallback.
+
 ## Next Steps
 
 - Expand tests into focused interaction smoke coverage and view-model adapters before broadening source inputs further.

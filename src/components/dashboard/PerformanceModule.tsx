@@ -8,12 +8,14 @@ import { parseAccountEquityCsv } from "@/lib/accountEquityCsvImport";
 import {
   clearImportedAccountEquityHistory,
   loadImportedAccountEquityHistory,
+  loadImportedAccountEquityImportSummary,
   saveImportedAccountEquityHistory,
   saveImportedAccountEquityImportSummary
 } from "@/lib/accountEquityStorage";
 import { parseExchangeTradeLedgerCsv } from "@/lib/exchangeTradeLedgerCsvImport";
 import {
   clearImportedExchangeTradeLedger,
+  loadExchangeTradeLedgerImportSummary,
   loadImportedExchangeTradeLedger,
   saveExchangeTradeLedgerImportSummary,
   saveImportedExchangeTradeLedger
@@ -339,15 +341,42 @@ function PerformanceBreakdown({ performance }: { performance: PerformanceSnapsho
 
 function formatLastUpdated(value: string | null) {
   if (!value) {
-    return "Unavailable";
+    return "Mock/default data";
   }
 
-  return new Intl.DateTimeFormat("en-US", {
+  const date = new Date(value);
+
+  if (!Number.isFinite(date.getTime())) {
+    return value;
+  }
+
+  return `Imported ${new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
     hour: "numeric",
     minute: "2-digit",
     timeZone: "America/New_York",
     timeZoneName: "short"
-  }).format(new Date(value));
+  }).format(date)}`;
+}
+
+function getLatestValidTimestamp(values: Array<string | null | undefined>) {
+  const validTimestamps = values
+    .filter((value): value is string => !!value)
+    .map((value) => ({ value, time: new Date(value).getTime() }))
+    .filter((entry) => Number.isFinite(entry.time));
+
+  if (validTimestamps.length === 0) {
+    return null;
+  }
+
+  return validTimestamps.reduce((latest, entry) => (
+    entry.time > latest.time ? entry : latest
+  )).value;
+}
+
+function getLatestRecordImportedAt(records: Array<{ importedAt?: string }> | null) {
+  return getLatestValidTimestamp(records?.map((record) => record.importedAt) ?? []);
 }
 
 function getTradeLedgerMetrics(records: ExchangeTradeRecord[] | null) {
@@ -487,9 +516,12 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
   const [importMessage, setImportMessage] = useState("");
   const [tradeLedgerImportResult, setTradeLedgerImportResult] = useState<TradeLedgerImportResult | null>(null);
   const [tradeLedgerImportMessage, setTradeLedgerImportMessage] = useState("");
+  const [equityImportedAt, setEquityImportedAt] = useState<string | null>(null);
+  const [tradeLedgerImportedAt, setTradeLedgerImportedAt] = useState<string | null>(null);
   const sourceCopy = performanceSourceCopy[performanceSource];
   const isUsingImportedData = performanceSource === "imported";
   const isUsingTradeLedgerData = tradeLedgerSource === "imported";
+  const latestImportTimestamp = getLatestValidTimestamp([equityImportedAt, tradeLedgerImportedAt]);
   const reviewNote =
     tradeLedgerSource === "imported"
       ? `${sourceCopy.note} Trade-ledger stats are derived from imported exchange close records.`
@@ -498,16 +530,25 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
   useEffect(() => {
     const importedHistory = loadImportedAccountEquityHistory();
     const importedTradeLedger = loadImportedExchangeTradeLedger();
+    const equityImportSummary = loadImportedAccountEquityImportSummary();
+    const tradeLedgerImportSummary = loadExchangeTradeLedgerImportSummary();
 
     if (importedHistory?.length) {
       setCurrentPerformance(getPerformanceFromEquityHistory(importedHistory, importedTradeLedger));
       setPerformanceSource("imported");
+      setEquityImportedAt(equityImportSummary?.importedAt ?? getLatestRecordImportedAt(importedHistory));
     } else {
       setCurrentPerformance(getPerformanceWithTradeLedger(performance, importedTradeLedger));
+      setEquityImportedAt(null);
     }
 
     if (getTradeLedgerMetrics(importedTradeLedger)) {
       setTradeLedgerSource("imported");
+      setTradeLedgerImportedAt(
+        tradeLedgerImportSummary?.importedAt ?? getLatestRecordImportedAt(importedTradeLedger)
+      );
+    } else {
+      setTradeLedgerImportedAt(null);
     }
   }, [performance]);
 
@@ -620,6 +661,7 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
     setCurrentPerformance(getPerformanceFromEquityHistory(importResult.records, importedTradeLedger));
     setPerformanceSource("imported");
     setTradeLedgerSource(getTradeLedgerMetrics(importedTradeLedger) ? "imported" : "pending");
+    setEquityImportedAt(importResult.summary.importedAt);
     setImportMessage("Imported equity history saved locally.");
   }
 
@@ -639,6 +681,7 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
 
     setCurrentPerformance(withTradeLedgerMetricsSnapshot(basePerformance, tradeMetrics));
     setTradeLedgerSource(tradeMetrics ? "imported" : "pending");
+    setTradeLedgerImportedAt(tradeMetrics ? tradeLedgerImportResult.summary.importedAt : null);
     setTradeLedgerImportMessage(
       tradeMetrics ? "Imported trade ledger saved locally." : "Trade ledger saved with no accepted close trades."
     );
@@ -650,6 +693,7 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
     setCurrentPerformance(getPerformanceWithTradeLedger(performance, importedTradeLedger));
     setPerformanceSource("mock");
     setTradeLedgerSource(getTradeLedgerMetrics(importedTradeLedger) ? "imported" : "pending");
+    setEquityImportedAt(null);
     setImportResult(null);
     setImportMessage("Using mock equity history.");
   }
@@ -666,6 +710,7 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
     }
 
     setTradeLedgerSource("pending");
+    setTradeLedgerImportedAt(null);
     setTradeLedgerImportResult(null);
     setTradeLedgerImportMessage("Trade ledger cleared. Metrics are pending import.");
   }
@@ -912,7 +957,7 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
         <ModuleNote>{reviewNote}</ModuleNote>
       </div>
 
-      <p className="performanceUpdated">Last Updated: {formatLastUpdated(currentPerformance.lastUpdatedAt)}</p>
+      <p className="performanceUpdated">Last Updated: {formatLastUpdated(latestImportTimestamp)}</p>
     </SectionPanel>
   );
 }

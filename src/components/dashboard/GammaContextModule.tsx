@@ -76,9 +76,21 @@ function toLocalDateTimeInputValue(value: string | null) {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+function getLastCheckedAt(gamma: GammaSnapshot) {
+  if (gamma.capturedAt) {
+    return gamma.capturedAt;
+  }
+
+  if ((gamma.status === "checked" || gamma.source === "uploaded_image" || gamma.source === "provider") && gamma.updatedAt) {
+    return gamma.updatedAt;
+  }
+
+  return null;
+}
+
 function formatLastChecked(value: string | null) {
   if (!value) {
-    return "n/a";
+    return "not checked";
   }
 
   const date = new Date(value);
@@ -142,6 +154,7 @@ export function GammaContextModule({ gamma }: GammaContextModuleProps) {
   const [gammaError, setGammaError] = useState<string | null>(null);
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [isImageDragActive, setIsImageDragActive] = useState(false);
+  const lastCheckedAt = getLastCheckedAt(savedGamma);
 
   useEffect(() => {
     setDraftGamma(createDraftFromGamma(savedGamma));
@@ -317,7 +330,7 @@ export function GammaContextModule({ gamma }: GammaContextModuleProps) {
     >
       <PlaceholderFrame
         label={gamma.imageSourceLabel}
-        meta={`Last checked ${formatLastChecked(savedGamma.capturedAt)}`}
+        meta={`Last checked: ${formatLastChecked(lastCheckedAt)}`}
         variant="gamma"
       >
         {savedGamma.distributionImageUrl ? (
@@ -479,7 +492,7 @@ export function GammaContextModule({ gamma }: GammaContextModuleProps) {
           </div>
           <div>
             <span>Last checked</span>
-            <strong>{formatLastChecked(savedGamma.capturedAt)}</strong>
+            <strong>{formatLastChecked(lastCheckedAt)}</strong>
           </div>
           <div>
             <span>Source</span>

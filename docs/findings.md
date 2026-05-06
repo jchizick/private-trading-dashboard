@@ -2247,3 +2247,26 @@ Sample reviewed terminal values from the verification run:
   - `npm run typecheck`.
   - `npm run build`.
   - `npm run verify`.
+
+## Status And Timestamp Correctness Pass - 2026-05-06
+
+### Audit Findings
+
+- The top navbar was still rendering `DashboardData.generatedAt` and `marketSituation.latestDailyClose`, both from the mock screen payload, so the displayed time and SPX price could appear static even after client quote hydration.
+- Market Overview already owned the live/cache market quote fetch and transient capture candidate, so the navbar only needed access to that existing state; no direct provider call or key exposure was needed.
+- New daily snapshots were seeded from the mock daily snapshot shape before client storage load, which allowed the capture strip to render the old `9:15 AM EDT` fixture as if a current-day market snapshot had been captured.
+- Gamma Context had the saved daily gamma timestamps but the chart frame only formatted `capturedAt`; uploaded-image-only states could therefore render `Last checked n/a` despite having a meaningful `updatedAt`.
+- Performance Review had access to imported account equity and trade ledger records, plus import-summary storage helpers, but its footer still used the derived performance view-model timestamp and could show the old mock `9:05 AM EDT` fixture.
+- Fear & Greed already swaps to the fetched route snapshot or browser cache after hydration and uses that snapshot's `lastUpdatedAt`; the key risk was preserving that behavior instead of introducing a fixture fallback into the footer path.
+
+### Boundary Findings
+
+- Moving the `DailySnapshotProvider` above the header lets the top navbar consume existing quote capture state without widening persistence or changing module workflows.
+- The navbar now reflects live/cached quote display state when `SPX500` is available, while mock fallback remains explicit through `data: mock`.
+- The capture strip can identify pending state from active `DailyDashboardSnapshot` status and timestamp ordering without schema changes.
+- No API routes, provider maps, market candle behavior, auth, dependencies, localStorage keys, or persistence schemas changed.
+
+### Tests
+
+- Extended DashboardShell hydration coverage for topbar live SPX/current-time rendering, pending capture copy, and imported Performance footer timestamps.
+- Extended Gamma image coverage for uploaded-image timestamp fallback from saved `gamma.updatedAt`.

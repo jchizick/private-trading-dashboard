@@ -222,6 +222,22 @@ describe("Gamma Context image upload", () => {
     expect(savedMay5.gamma.majorPositiveGamma).toBe(7400);
   });
 
+  it("uses the saved gamma updated time for uploaded images without a captured time", async () => {
+    const storedSnapshot = createStoredSnapshot("2026-05-04", {
+      source: "uploaded_image",
+      distributionImageUrl: may4Image,
+      capturedAt: null,
+      updatedAt: may4Now
+    });
+    localStorage = setupLocalStorage({
+      [getDailySnapshotStorageKey("2026-05-04")]: JSON.stringify(storedSnapshot)
+    });
+    root = await renderHarness(container);
+
+    expect(container.textContent).toContain("Last checked: May 4, 11:00 AM EDT");
+    expect(container.textContent).not.toContain("Last checked n/a");
+  });
+
   it("clears only the uploaded image from the active gamma snapshot", async () => {
     const storedSnapshot = createStoredSnapshot("2026-05-04", {
       source: "uploaded_image",

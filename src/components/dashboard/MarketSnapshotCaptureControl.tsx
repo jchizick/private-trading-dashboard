@@ -1,10 +1,11 @@
 "use client";
 
 import { useDailySnapshot } from "@/components/dashboard/DailySnapshotProvider";
+import type { DailyDashboardSnapshot } from "@/types/dailySnapshot";
 
 function formatCapturedAt(value: string | null | undefined) {
   if (!value) {
-    return "No market snapshot captured";
+    return "Market snapshot pending";
   }
 
   const date = new Date(value);
@@ -37,6 +38,26 @@ function getLatestCapturedAt(spxCapturedAt: string | null | undefined, fearGreed
   return timestamps.sort((a, b) => b.time - a.time)[0].value;
 }
 
+function getActiveSnapshotCapturedAt(snapshot: DailyDashboardSnapshot) {
+  if (snapshot.status !== "saved") {
+    return null;
+  }
+
+  const createdAtTime = new Date(snapshot.createdAt).getTime();
+  const capturedAtValues = [
+    snapshot.spx.capturedAt,
+    snapshot.fearGreed.capturedAt
+  ].filter((value) => {
+    const capturedAtTime = new Date(value).getTime();
+
+    return Number.isFinite(capturedAtTime) && (
+      !Number.isFinite(createdAtTime) || capturedAtTime >= createdAtTime
+    );
+  });
+
+  return getLatestCapturedAt(capturedAtValues[0], capturedAtValues[1]);
+}
+
 export function MarketSnapshotCaptureControl() {
   const {
     dailySnapshot,
@@ -45,7 +66,7 @@ export function MarketSnapshotCaptureControl() {
     currentFearGreedCaptureCandidate,
     captureMarketSnapshot
   } = useDailySnapshot();
-  const capturedAt = getLatestCapturedAt(dailySnapshot.spx.capturedAt, dailySnapshot.fearGreed.capturedAt);
+  const capturedAt = getActiveSnapshotCapturedAt(dailySnapshot);
   const sourceState = currentMarketCaptureCandidate?.quoteSourceState ?? "pending";
   const sentimentState = currentFearGreedCaptureCandidate ? "ready" : "pending";
 

@@ -10,8 +10,7 @@ import {
   type ReactNode
 } from "react";
 import {
-  createDailySnapshotForDate,
-  DEFAULT_DAILY_SNAPSHOT_TRADING_DATE
+  createDailySnapshotForDate
 } from "@/lib/dailySnapshotFactory";
 import {
   getLocalTradingDate,
@@ -48,12 +47,12 @@ interface DailySnapshotContextValue {
 const DailySnapshotContext = createContext<DailySnapshotContextValue | null>(null);
 
 function getInitialSnapshot() {
-  return createDailySnapshotForDate(DEFAULT_DAILY_SNAPSHOT_TRADING_DATE);
+  return createDailySnapshotForDate(getLocalTradingDate());
 }
 
 export function DailySnapshotProvider({ children }: { children: ReactNode }) {
   const [dailySnapshot, setDailySnapshot] = useState<DailyDashboardSnapshot>(() => getInitialSnapshot());
-  const [activeDate, setActiveDate] = useState(DEFAULT_DAILY_SNAPSHOT_TRADING_DATE);
+  const [activeDate, setActiveDate] = useState(() => getLocalTradingDate());
   const [savedSnapshotDates, setSavedSnapshotDates] = useState<string[]>([]);
   const [currentMarketCaptureCandidate, setCurrentMarketCaptureCandidate] =
     useState<MarketCaptureCandidate | null>(null);

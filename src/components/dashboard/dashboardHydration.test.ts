@@ -17,6 +17,7 @@ import type { AccountEquitySnapshot, ExchangeTradeRecord } from "@/types/perform
 
 const ACCOUNT_EQUITY_HISTORY_STORAGE_KEY = "market-command:account-equity-history";
 const EXCHANGE_TRADE_LEDGER_STORAGE_KEY = "market-command:exchange-trade-ledger";
+const DASHBOARD_CLOCK_TIME = "2026-05-06T19:23:00.000Z";
 
 const marketQuotesResult: MarketQuotesFetchResult = {
   ok: true,
@@ -275,6 +276,8 @@ describe("DashboardShell hydration", () => {
 
   beforeEach(() => {
     (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(DASHBOARD_CLOCK_TIME));
     root = null;
     container = document.createElement("div");
     document.body.replaceChildren(container);
@@ -301,6 +304,7 @@ describe("DashboardShell hydration", () => {
 
     document.body.replaceChildren();
     localStorage.clear();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -338,8 +342,13 @@ describe("DashboardShell hydration", () => {
     expect(text).not.toContain("Hydration SPX feed");
     expect(text).toContain("6,012.34");
     expect(text).toContain("quotes live");
+    expect(container.querySelector(".topBar__telemetry")?.textContent).toContain("May 6, 2026");
+    expect(container.querySelector(".topBar__telemetry")?.textContent).toContain("6,012.34");
+    expect(container.querySelector(".topBar__telemetry")?.textContent).toContain("data: live");
+    expect(text).toContain("Market snapshot pending");
     expect(text).toContain("82");
     expect(text).toContain("Extreme Greed");
+    expect(text).toContain("Updated May 4, 10:30 AM EDT");
     expect(text).toContain("Hydration saved synthesis is loaded from local storage.");
     expect(text).toContain("Hydration operator note survived the client mount.");
     expect(text).toContain("7,311");
@@ -348,6 +357,7 @@ describe("DashboardShell hydration", () => {
     expect(text).toContain("Source: Imported CSV");
     expect(text).toContain("Local CSV");
     expect(text).toContain("Trade Ledger: imported");
+    expect(text).toContain("Last Updated: Imported May 4, 10:00 AM EDT");
     expect(container.querySelector(".equityCurve__line")).not.toBeNull();
     expect(container.querySelector(".equityCurve polygon")).not.toBeNull();
     expect(container.querySelectorAll(".equityCurve__point")).toHaveLength(0);
