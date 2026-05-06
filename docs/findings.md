@@ -1936,3 +1936,241 @@ Sample reviewed terminal values from the verification run:
 
 - Added provider-level capture action coverage for SPX/Fear & Greed writes, same-date overwrite behavior, date-specific persistence, and one-candidate capture safety.
 - Extended the integrated DashboardShell hydration test to prove route/cache hydration alone does not write to the daily snapshot, then clicking `Capture Market Snapshot` persists the displayed live market and sentiment values.
+
+## Imported Equity Curve Duplicate Key Findings - 2026-05-04
+
+### Root Cause
+
+- Imported account equity histories can produce many equity curve points with repeated weekday labels.
+- `PerformanceModule` rendered vertical grid lines, curve points, and x-axis labels using `point.label` as the React key.
+- Weekday labels such as `Tue` repeat in real account histories, triggering React's duplicate child key warning.
+
+### Fix
+
+- `toPerformanceSnapshot` now carries the source equity date on each display `EquityPoint`.
+- `EquityCurve` uses the unique source date for SVG map keys, with a label/index fallback for legacy point shapes.
+- The visible weekday label remains unchanged.
+- Review tag badge keys were also made duplicate-safe with a tag/index key.
+
+### Boundaries
+
+- No chart visual layout, account equity calculations, import behavior, storage behavior, routes, or persistence behavior changed.
+- Added focused test coverage that display curve points retain source dates even when weekday labels repeat.
+
+## Global Polish Findings - 2026-05-05
+
+### Visual Cleanup
+
+- Performance Review header controls now collapse into a small `Actions` menu so the panel title has room to breathe.
+- The Performance Review explanatory paragraph was removed because source badges and import panels already communicate the same state.
+- Gamma display-only formatting now avoids cold empty strings: pending values show `pending`, missing check times show `not checked`, and market-closed days show `Market Closed` plus `No gamma update expected`.
+- SPX watchlist metadata remains truthful but lighter: compact source labels and status stay below the symbol in quieter type.
+
+### Boundaries
+
+- No data flow, capture action, daily snapshot persistence, import behavior, calculations, API routes, storage keys, or auth behavior changed.
+
+## Market Command Design System Alignment Findings - 2026-05-05
+
+### Visual Direction
+
+- The visible sidebar was the largest remaining single-page cockpit distraction; `[MC]` now belongs to the command bar and section anchors remain on content nodes for future use.
+- The top bar is now the primary telemetry surface instead of a title row plus a separate navigation rail.
+- The final CSS layer shifts the dashboard toward charcoal/graphite panels, steel-grey borders, cold metadata, and tactical green used for ready/live/positive states.
+- Amber remains reserved for caution/watch states and red for negative/error states.
+
+### Module Alignment
+
+- SPX remains the visual anchor but its green treatment is less decorative.
+- Gamma no longer uses purple/pink chart accents; prior/reference marks now sit in neutral grey.
+- Fear & Greed retains its sentiment scale but with a more subdued instrument-style gradient.
+- Capture and external tools are visually compressed into lower-noise utility strips.
+
+### Boundaries
+
+- No routes, API handlers, auth behavior, storage keys, DailyDashboardSnapshot schema, capture workflow, import behavior, or calculations changed.
+
+## FMP 30-Minute Candle Symbol Verification Findings - 2026-05-05
+
+### Script
+
+- Added `scripts/verify-fmp-candles.mjs` as a server-side-only verifier for FMP `historical-chart/30min`.
+- The script reads `FMP_API_KEY` from `.env.local` or the server process environment, never prints the key, and writes no candle data to files, caches, localStorage, daily snapshots, routes, or UI code.
+- The verifier prints terminal output only, including HTTP status, row count, first/last row dates, latest sample row, row ordering, provider errors, and plan-restriction detection.
+
+### Verification Command
+
+- Ran `node scripts\verify-fmp-candles.mjs`.
+- The default range was `2026-04-28` to `2026-05-05` using the script's America/Toronto date handling.
+- Verified only the project-documented SPX500 quote candidates: FMP `ESUSD` and FMP `^GSPC`.
+- No extra S&P 500 proxy was tested because the project docs do not currently document another FMP S&P candle candidate beyond `ESUSD` and `^GSPC`.
+
+### Results
+
+| Display Use | FMP Symbol | Result | HTTP Status | Candle Rows | First Row | Last Row | Row Order | Notes |
+| --- | --- | --- | --- | ---: | --- | --- | --- | --- |
+| SPX500 primary candidate | `ESUSD` | Blocked | `402 Payment Required` | 0 | N/A | N/A | not enough rows | FMP returned a premium/special-endpoint subscription restriction for this symbol on `historical-chart/30min`. |
+| SPX500 fallback candidate | `^GSPC` | Blocked | `402 Payment Required` | 0 | N/A | N/A | not enough rows | FMP returned the same premium/special-endpoint subscription restriction for this symbol on `historical-chart/30min`. |
+
+### Recommendation
+
+- Do not wire FMP `historical-chart/30min` for SPX500 yet on the current FMP plan; both verified quote symbols are blocked for the candle endpoint.
+- There is no recommended SPX500 FMP candle provider symbol from this verification pass.
+- Keep the existing Market Overview mock chart until a permitted candle source is confirmed.
+- Timestamp, order, and timezone caveats remain unresolved because FMP returned no candle rows for either candidate.
+- Next implementation task, after a working provider symbol/source is approved: add candle types, FMP candle normalization tests, and `/api/market-candles` with server-only key handling and stale-cache fallback.
+
+### Boundaries
+
+- No `lightweight-charts` dependency was installed.
+- No `/api/market-candles` route, MarketSituationModule change, market quote route change, DailyDashboardSnapshot change, UI change, or client-side FMP call was added.
+
+## Yahoo Market Candles Provider Route Findings - 2026-05-05
+
+### Provider Route
+
+- Added `GET /api/market-candles` as a server-side-only Yahoo Finance chart proxy for Market Overview candle validation.
+- The route supports only the dashboard display symbol `SPX500` in this slice and defaults to Yahoo `^GSPC` with `interval=30m` and `range=5d`.
+- Added optional SPY fallback behind the server-only `MARKET_CANDLES_ENABLE_SPY_PROXY=true` flag.
+- The response envelope includes top-level proxy metadata so future UI code can distinguish real `^GSPC` candles from `SPY` proxy candles without inspecting individual candle rows.
+
+### Data Contract
+
+- Added separate market candle contracts outside `dashboard.ts` and outside `DailyDashboardSnapshot`.
+- Normalized candles use `{ time, open, high, low, close, volume, source, symbol, isProxy }`.
+- `time` is Yahoo's Unix-seconds timestamp, OHLC fields must be finite numbers, and rows with missing/non-finite OHLC values are filtered.
+- Missing volume remains `null`.
+- Successful `^GSPC` responses return `isProxy: false` and omit `proxyFor`; successful SPY fallback responses return `isProxy: true` and `proxyFor: "^GSPC"`.
+- Controlled failures return `providerSymbol: null`, `isProxy: false`, `candles: []`, and a clear error string.
+
+### Tests And Boundaries
+
+- Added pure Yahoo candle normalization tests for aligned timestamp/quote arrays, null volume, malformed payloads, empty payloads, provider errors, and invalid-row filtering.
+- Added route tests for `^GSPC` success, unsupported display symbols, primary failure with proxy disabled, SPY fallback with proxy enabled, and total provider failure.
+- `npm run test` passed with 21 test files and 177 tests.
+- No `lightweight-charts` dependency, MarketSituationModule wiring, market quote route change, DailyDashboardSnapshot change, persistence behavior, or client-side Yahoo call was added.
+
+### Live Route Validation
+
+- Smoke-tested `GET /api/market-candles?symbol=SPX500` against the local API route with `MARKET_CANDLES_ENABLE_SPY_PROXY` not enabled.
+- Result: HTTP `200`, `ok: true`, `providerSymbol: "^GSPC"`, `isProxy: false`, and 66 normalized candle rows.
+- First candle timestamp: `1777469400`, which maps to `2026-04-29T13:30:00Z` / `2026-04-29 09:30:00 -04:00`.
+- Last candle timestamp: `1778011200`, which maps to `2026-05-05T20:00:00Z` / `2026-05-05 16:00:00 -04:00`.
+- Yahoo timestamps are Unix seconds. The returned 5-day `30m` payload appeared oldest-first and aligned with regular US market session times in Eastern time.
+- SPY proxy fallback was not tested live in this smoke pass because the primary `^GSPC` provider path succeeded.
+
+## Market Overview Candlestick Renderer Findings - 2026-05-05
+
+### Renderer Integration
+
+- Installed `lightweight-charts` as the chart rendering dependency.
+- Added a reusable client-only Market Overview candle chart component that fetches `/api/market-candles?symbol=SPX500` after mount.
+- The component dynamically imports `lightweight-charts`, renders a candlestick series from normalized OHLC candles, adds a small non-invasive volume histogram, and calls `fitContent()` after data loads.
+- The existing mock SVG chart remains mounted and visible while loading, after fetch failure, after malformed/empty candle payloads, or if chart construction fails.
+- Live chart metadata displays `SPX500 / 30m / Yahoo Finance / Live`; proxy responses display `SPX500 proxy via SPY / 30m / Yahoo Finance / Live`.
+
+### Boundaries
+
+- No market quote route behavior changed.
+- No `DailyDashboardSnapshot` schema, capture behavior, localStorage behavior, or candle persistence was added.
+- No chart controls, new symbols, or provider settings UI were added.
+- MarketSituationModule now delegates only the Market Overview chart surface to the reusable renderer while preserving the existing watchlist and quote hydration behavior.
+
+### Tests
+
+- Added component coverage for fallback preservation on malformed/unavailable candle data, live chart rendering after valid candle data, and SPY proxy metadata labeling.
+- Updated DashboardShell hydration coverage so candle fetch failure keeps the mock chart path and does not create hydration warnings.
+- Verification passed:
+  - `npm run test`: 22 test files, 180 tests.
+  - `npm run typecheck`.
+  - `npm run build`.
+
+## Market Overview Candlestick Visual Refinement - 2026-05-05
+
+### Visual Integration
+
+- Refined the live Lightweight Charts layer to better match the existing terminal dashboard frame without changing the mock SVG fallback markup.
+- Adjusted chart spacing, price-scale margins, label color, font size, grid opacity, candle colors, wick contrast, and volume histogram opacity for a calmer native dashboard read.
+- Added a subtle live-chart grid backdrop in CSS so the chart surface visually aligns with the existing mock chart and surrounding command-center panels.
+- Increased the live canvas minimum height and tightened the metadata bar spacing so the chart fills the existing Market Overview frame more cleanly at desktop sizes.
+- Kept the status labels unchanged: `SPX500 / 30m / Yahoo Finance / Live` and `SPX500 proxy via SPY / 30m / Yahoo Finance / Live`.
+
+### Resize Behavior
+
+- ResizeObserver updates now schedule chart resize work through `requestAnimationFrame`, then re-run `fitContent()` after dimension changes.
+- Added component coverage for the resize path to ensure chart dimensions are applied and the fitted time-scale view is preserved.
+
+### Boundaries
+
+- No candle provider route, market quote route, `DailyDashboardSnapshot`, persistence, symbols, controls, watchlist, or broader dashboard layout behavior changed.
+- The mock SVG remains the fallback for loading, provider errors, empty/malformed payloads, fetch failure, or chart construction failure.
+
+### Tests
+
+- Verification passed:
+  - `npm run test`: 22 test files, 181 tests.
+  - `npm run typecheck`.
+  - `npm run build`.
+
+## Market Overview Candlestick Palette Refinement - 2026-05-05
+
+### Palette Integration
+
+- Updated only the live Lightweight Charts palette for the Market Overview candlestick renderer.
+- Centralized the chart bullish/bearish palette in the client chart component so candle bodies, borders, wicks, and volume bars use one consistent dashboard color language.
+- Bullish candles now use the dashboard command green family, with slightly brighter green borders and wicks.
+- Bearish candles now use the dashboard negative red family, with slightly brighter red borders and wicks.
+- Volume bars use the same bullish/bearish colors at lower opacity so volume stays secondary to price.
+
+### Boundaries
+
+- No candle provider route, market quote route, `DailyDashboardSnapshot`, persistence, layout, watchlist, controls, symbols, grid, label, background, or fallback behavior changed.
+- The embedded mock SVG fallback remains exactly as-is.
+
+### Tests
+
+- Added component coverage for the live chart candle and volume color configuration.
+- Verification passed:
+  - `npm run test`: 22 test files, 181 tests.
+  - `npm run typecheck`.
+  - `npm run build`.
+
+## Performance Review Equity Curve Marker Refinement - 2026-05-05
+
+### Visual Update
+
+- Removed the repeated circular point markers from the 5D cumulative equity SVG in the Performance Review module.
+- Kept the continuous equity polyline, soft area fill, zero line, grid, axis labels, header value, and footer labels intact.
+- The chart now reads as a cleaner terminal-style cumulative performance line instead of a scatter-like point plot.
+
+### Boundaries
+
+- No CSV parsing, performance calculations, module layout, Market Overview behavior, candle rendering, watchlist behavior, or API route behavior changed.
+
+### Tests
+
+- Extended DashboardShell hydration coverage to assert that the equity curve keeps its line and filled area while rendering no `.equityCurve__point` markers.
+- Verification passed:
+  - `npm run test`: 22 test files, 181 tests.
+  - `npm run typecheck`.
+  - `npm run build`.
+
+## Performance Review Equity Curve X-Axis Refinement - 2026-05-05
+
+### Visual Update
+
+- Removed the compact SVG's repeated daily X-axis labels from the 5D cumulative equity curve.
+- Kept the return-axis percentage labels, vertical/horizontal grid context, continuous equity line, soft area fill, zero line, header value, and footer labels intact.
+- The bottom of the curve no longer collapses into a dense grey label strip.
+
+### Boundaries
+
+- No CSV parsing, performance calculations, module layout, other dashboard modules, Market Overview behavior, or API route behavior changed.
+
+### Tests
+
+- Extended DashboardShell hydration coverage to assert that the equity curve keeps percentage axis context while omitting weekday X-axis labels.
+- Verification passed:
+  - `npm run test`: 22 test files, 181 tests.
+  - `npm run typecheck`.
+  - `npm run build`.

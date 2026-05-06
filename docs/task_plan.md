@@ -62,6 +62,8 @@
 - [x] Add exchange CSV import parser foundation after account-equity source is stable.
 - [x] Add exchange trade ledger import UI after parser/storage/calculation foundation is approved.
 - [x] Correct imported account equity cumulative-return semantics and daily return calculation.
+- [x] Refine Performance Review equity curve to remove repeated point markers.
+- [x] Refine Performance Review equity curve to remove dense X-axis labels.
 - [ ] Add exchange XLSX import parser after CSV workflow is proven.
 - [x] Complete SPX/watchlist provider symbol discovery planning.
 - [x] Add local FMP API key placeholder support for quote verification.
@@ -83,9 +85,18 @@
 - [x] Replace `WTI` and `DXY` with `VIX` and `EURUSD` after verification.
 - [x] Add daily market snapshot capture data model and transient client capture candidates.
 - [x] Add explicit daily market snapshot capture behavior after live display is stable.
-- [ ] Integrate chart/embed source after provider choice.
+- [x] Verify FMP `historical-chart/30min` support for current SPX500 quote symbols.
+- [x] Add Yahoo Finance server-side market candle provider route for SPX500 validation.
+- [x] Add Yahoo candle normalization helpers and provider route tests.
+- [x] Integrate chart/embed source after provider choice.
+- [x] Confirm a permitted SPX500 candle source or provider symbol.
+- [x] Add candle types, normalization helpers, and `/api/market-candles` after provider approval.
+- [x] Wire validated market candles into Market Overview chart rendering after chart-library approval.
+- [x] Refine Market Overview candlestick visual integration inside the existing dashboard frame.
+- [x] Align Market Overview candlestick palette with the dashboard positive/negative color language.
+- [ ] Add chart controls or symbol switching after live SPX rendering is stable.
 - [ ] Plan FMP Economic Calendar integration for Trading Context.
-- [ ] Later investigate FMP chart/candle APIs for possible SPX context support.
+- [x] Later investigate FMP chart/candle APIs for possible SPX context support.
 - [ ] Integrate gamma image/levels provider or upload workflow after manual gamma state exists.
 - [x] Integrate Fear & Greed source through server-side CoinMarketCap proxy with mock/stale fallback.
 - [ ] Integrate market news and economic calendar sources after provider choice.

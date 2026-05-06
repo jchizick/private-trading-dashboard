@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useDailySnapshot } from "@/components/dashboard/DailySnapshotProvider";
-import { getSessionTone, getTrendTone } from "@/lib/marketStatus";
+import { getSessionTone } from "@/lib/marketStatus";
 import { SectionPanel } from "@/components/ui/SectionPanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { PlaceholderFrame } from "@/components/ui/PlaceholderFrame";
+import { MarketOverviewCandlesChart } from "@/components/dashboard/MarketOverviewCandlesChart";
 import { formatPrice } from "@/lib/formatters";
 import { createMarketCaptureCandidate } from "@/lib/dailyMarketSnapshotCapture";
 import {
@@ -160,9 +161,6 @@ function markResultAsCached(result: MarketQuotesFetchResult): MarketQuotesFetchR
   };
 }
 
-function getQuotePrice(quote: MarketQuote | undefined, fallback: number) {
-  return quote?.price ?? fallback;
-}
 
 export function MarketSituationModule({ market }: MarketSituationModuleProps) {
   const [quotesResult, setQuotesResult] = useState<MarketQuotesFetchResult | null>(null);
@@ -217,9 +215,6 @@ export function MarketSituationModule({ market }: MarketSituationModuleProps) {
   }, []);
 
   const sourceState = getQuoteSourceState(quotesResult);
-  const spxQuote = quotesResult?.quotes.SPX500;
-  const displayedSpxPrice = getQuotePrice(spxQuote, market.latestDailyClose);
-  const hasSpxChange = typeof spxQuote?.change === "number" && typeof spxQuote.changePercent === "number";
   const marketCaptureRows = useMemo<CapturedMarketQuoteRow[]>(() => (
     marketWatchlist.map((item) => {
       const quote = quotesResult?.quotes[item.symbol];
@@ -283,96 +278,85 @@ export function MarketSituationModule({ market }: MarketSituationModuleProps) {
 
   return (
     <SectionPanel
-      title="SPX Situation"
-      description="Primary macro market read for risk context."
+      title="Market Overview"
+      description="Primary market read for risk context."
       action={
         <div className="marketSourceState">
-          <StatusBadge tone={getSourceStateTone(sourceState)}>quotes: {sourceState}</StatusBadge>
           <StatusBadge tone={getSessionTone(market.sessionStatus)}>{market.sessionStatus}</StatusBadge>
+          <StatusBadge tone={getSourceStateTone(sourceState)}>quotes {sourceState}</StatusBadge>
         </div>
       }
       className="sectionPanel--marketAnchor"
     >
-      <div className="marketHero">
-        <div>
-          <span className="moduleKicker">{spxQuote?.sourceLabel ?? `${market.symbol} latest close`}</span>
-          <strong>{formatPrice(displayedSpxPrice)}</strong>
-          {hasSpxChange ? (
-            <small className={`marketHero__change marketWatchlist__value--${getChangeTone(formatSignedPrice(spxQuote.change, ""))}`}>
-              {formatSignedPrice(spxQuote.change, "")} / {formatSignedPercent(spxQuote.changePercent, "")}
-            </small>
-          ) : null}
-        </div>
-        <div className="marketHero__badges">
-          <StatusBadge tone={getTrendTone(market.dailyTrend)}>Daily {market.dailyTrend}</StatusBadge>
-          <StatusBadge tone={getTrendTone(market.weeklyTrend)}>Weekly {market.weeklyTrend}</StatusBadge>
-          <StatusBadge tone="neutral">{market.riskState} risk</StatusBadge>
-        </div>
-      </div>
-
       <div className="marketGrid">
         <PlaceholderFrame label={market.chartPlaceholderLabel} variant="chart">
-          <div className="tradingChart__quote">
-            <span>{market.symbol}</span>
-            <strong>{formatPrice(displayedSpxPrice)}</strong>
-          </div>
-          <svg className="tradingChart" viewBox="0 0 360 210" role="img">
-            <g className="tradingChart__grid">
-              <path d="M34 24H328M34 68H328M34 112H328M34 156H328" />
-              <path d="M74 18V172M124 18V172M174 18V172M224 18V172M274 18V172" />
-            </g>
-            <path className="placeholderFrame__baseline" d="M0 116H320" />
-            <path
-              className="placeholderFrame__path"
-              d="M34 126 C58 120 66 96 92 102 C118 108 126 56 158 64 C190 72 198 130 230 116 C264 100 284 64 328 70"
-            />
-            <g className="tradingChart__candles">
-              <path d="M55 94V130" /><rect x="51" y="104" width="8" height="18" />
-              <path d="M72 82V118" /><rect x="68" y="88" width="8" height="22" />
-              <path d="M89 100V138" /><rect x="85" y="108" width="8" height="20" />
-              <path d="M128 70V108" /><rect x="124" y="78" width="8" height="20" />
-              <path d="M146 56V98" /><rect x="142" y="64" width="8" height="24" />
-              <path d="M166 62V112" /><rect x="162" y="74" width="8" height="28" />
-              <path d="M206 104V142" /><rect x="202" y="112" width="8" height="22" />
-              <path d="M246 88V126" /><rect x="242" y="96" width="8" height="20" />
-              <path d="M286 72V112" /><rect x="282" y="82" width="8" height="20" />
-              <path d="M312 66V102" /><rect x="308" y="74" width="8" height="18" />
-            </g>
-            <g className="tradingChart__volume">
-              <rect x="36" y="180" width="5" height="18" />
-              <rect x="48" y="176" width="5" height="22" />
-              <rect x="60" y="184" width="5" height="14" />
-              <rect x="72" y="170" width="5" height="28" />
-              <rect x="84" y="188" width="5" height="10" />
-              <rect x="96" y="182" width="5" height="16" />
-              <rect x="108" y="174" width="5" height="24" />
-              <rect x="120" y="180" width="5" height="18" />
-              <rect x="132" y="168" width="5" height="30" />
-              <rect x="144" y="172" width="5" height="26" />
-              <rect x="156" y="176" width="5" height="22" />
-              <rect x="168" y="184" width="5" height="14" />
-              <rect x="180" y="188" width="5" height="10" />
-              <rect x="192" y="178" width="5" height="20" />
-              <rect x="204" y="186" width="5" height="12" />
-              <rect x="216" y="181" width="5" height="17" />
-              <rect x="228" y="174" width="5" height="24" />
-              <rect x="240" y="179" width="5" height="19" />
-              <rect x="252" y="184" width="5" height="14" />
-              <rect x="264" y="172" width="5" height="26" />
-              <rect x="276" y="186" width="5" height="12" />
-              <rect x="288" y="176" width="5" height="22" />
-              <rect x="300" y="182" width="5" height="16" />
-              <rect x="312" y="170" width="5" height="28" />
-            </g>
-            <g className="tradingChart__axis">
-              <text x="332" y="27">5,360</text>
-              <text x="332" y="71">5,320</text>
-              <text x="332" y="115">5,280</text>
-              <text x="40" y="207">09:30</text>
-              <text x="150" y="207">12:30</text>
-              <text x="274" y="207">15:30</text>
-            </g>
-          </svg>
+          <MarketOverviewCandlesChart
+            fallback={(
+              <>
+                <div className="marketChart__header">
+                  <span>Intraday structure</span>
+                  <strong>{market.symbol}</strong>
+                </div>
+                <svg className="tradingChart" viewBox="0 0 360 210" role="img">
+                  <g className="tradingChart__grid">
+                    <path d="M34 24H328M34 68H328M34 112H328M34 156H328" />
+                    <path d="M74 18V172M124 18V172M174 18V172M224 18V172M274 18V172" />
+                  </g>
+                  <path className="placeholderFrame__baseline" d="M0 116H320" />
+                  <path
+                    className="placeholderFrame__path"
+                    d="M34 126 C58 120 66 96 92 102 C118 108 126 56 158 64 C190 72 198 130 230 116 C264 100 284 64 328 70"
+                  />
+                  <g className="tradingChart__candles">
+                    <path d="M55 94V130" /><rect x="51" y="104" width="8" height="18" />
+                    <path d="M72 82V118" /><rect x="68" y="88" width="8" height="22" />
+                    <path d="M89 100V138" /><rect x="85" y="108" width="8" height="20" />
+                    <path d="M128 70V108" /><rect x="124" y="78" width="8" height="20" />
+                    <path d="M146 56V98" /><rect x="142" y="64" width="8" height="24" />
+                    <path d="M166 62V112" /><rect x="162" y="74" width="8" height="28" />
+                    <path d="M206 104V142" /><rect x="202" y="112" width="8" height="22" />
+                    <path d="M246 88V126" /><rect x="242" y="96" width="8" height="20" />
+                    <path d="M286 72V112" /><rect x="282" y="82" width="8" height="20" />
+                    <path d="M312 66V102" /><rect x="308" y="74" width="8" height="18" />
+                  </g>
+                  <g className="tradingChart__volume">
+                    <rect x="36" y="180" width="5" height="18" />
+                    <rect x="48" y="176" width="5" height="22" />
+                    <rect x="60" y="184" width="5" height="14" />
+                    <rect x="72" y="170" width="5" height="28" />
+                    <rect x="84" y="188" width="5" height="10" />
+                    <rect x="96" y="182" width="5" height="16" />
+                    <rect x="108" y="174" width="5" height="24" />
+                    <rect x="120" y="180" width="5" height="18" />
+                    <rect x="132" y="168" width="5" height="30" />
+                    <rect x="144" y="172" width="5" height="26" />
+                    <rect x="156" y="176" width="5" height="22" />
+                    <rect x="168" y="184" width="5" height="14" />
+                    <rect x="180" y="188" width="5" height="10" />
+                    <rect x="192" y="178" width="5" height="20" />
+                    <rect x="204" y="186" width="5" height="12" />
+                    <rect x="216" y="181" width="5" height="17" />
+                    <rect x="228" y="174" width="5" height="24" />
+                    <rect x="240" y="179" width="5" height="19" />
+                    <rect x="252" y="184" width="5" height="14" />
+                    <rect x="264" y="172" width="5" height="26" />
+                    <rect x="276" y="186" width="5" height="12" />
+                    <rect x="288" y="176" width="5" height="22" />
+                    <rect x="300" y="182" width="5" height="16" />
+                    <rect x="312" y="170" width="5" height="28" />
+                  </g>
+                  <g className="tradingChart__axis">
+                    <text x="332" y="27">5,360</text>
+                    <text x="332" y="71">5,320</text>
+                    <text x="332" y="115">5,280</text>
+                    <text x="40" y="207">09:30</text>
+                    <text x="150" y="207">12:30</text>
+                    <text x="274" y="207">15:30</text>
+                  </g>
+                </svg>
+              </>
+            )}
+          />
         </PlaceholderFrame>
       </div>
 

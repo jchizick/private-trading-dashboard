@@ -298,14 +298,6 @@ function EquityCurve({
         <line className="equityCurve__zero" x1={plot.left} x2={plot.right} y1={plot.bottom} y2={plot.bottom} />
         <polygon points={areaPoints} fill="url(#equityFill)" />
         <polyline className="equityCurve__line" points={linePoints} />
-        {coordinates.map((point) => (
-          <circle key={`${point.label}-point`} className="equityCurve__point" cx={point.x} cy={point.y} r="2" />
-        ))}
-        {coordinates.map((point) => (
-          <text key={`${point.label}-axis`} className="equityCurve__axis" x={point.x} y="132" textAnchor="middle">
-            {point.label}
-          </text>
-        ))}
       </svg>
       <div className="equityCurve__footer">
         <span>Return axis</span>

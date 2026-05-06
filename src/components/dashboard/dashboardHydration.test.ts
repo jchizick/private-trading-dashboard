@@ -223,6 +223,26 @@ function createFetchMock() {
       } as Response;
     }
 
+    if (url === "/api/market-candles?symbol=SPX500") {
+      return {
+        ok: true,
+        json: async () => ({
+          ok: false,
+          displaySymbol: "SPX500",
+          requestedSymbol: "SPX500",
+          providerSymbol: null,
+          source: "Yahoo Finance",
+          interval: "30m",
+          range: "5d",
+          candles: [],
+          stale: false,
+          updatedAt: "2026-05-04T14:30:00.000Z",
+          isProxy: false,
+          error: "test_candles_unavailable"
+        })
+      } as Response;
+    }
+
     throw new Error(`Unexpected fetch call: ${url}`);
   });
 }
@@ -298,7 +318,7 @@ describe("DashboardShell hydration", () => {
 
     const text = container.textContent ?? "";
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/market-quotes",
       expect.objectContaining({ cache: "no-store" })
@@ -307,9 +327,14 @@ describe("DashboardShell hydration", () => {
       "/api/fear-greed",
       expect.objectContaining({ cache: "no-store" })
     );
-    expect(text).toContain("Hydration SPX feed");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/market-candles?symbol=SPX500",
+      expect.objectContaining({ cache: "no-store" })
+    );
+    expect(text).toContain("Market Overview");
+    expect(text).not.toContain("Hydration SPX feed");
     expect(text).toContain("6,012.34");
-    expect(text).toContain("quotes: live");
+    expect(text).toContain("quotes live");
     expect(text).toContain("82");
     expect(text).toContain("Extreme Greed");
     expect(text).toContain("Hydration saved synthesis is loaded from local storage.");
@@ -320,6 +345,17 @@ describe("DashboardShell hydration", () => {
     expect(text).toContain("Source: Imported CSV");
     expect(text).toContain("Local CSV");
     expect(text).toContain("Trade Ledger: imported");
+    expect(container.querySelector(".equityCurve__line")).not.toBeNull();
+    expect(container.querySelector(".equityCurve polygon")).not.toBeNull();
+    expect(container.querySelectorAll(".equityCurve__point")).toHaveLength(0);
+    expect(
+      Array.from(container.querySelectorAll(".equityCurve__axis")).map((label) => label.textContent)
+    ).toEqual(expect.arrayContaining([expect.stringContaining("%")]));
+    expect(
+      Array.from(container.querySelectorAll(".equityCurve__axis")).some((label) => (
+        ["Mon", "Tue", "Wed", "Thu", "Fri"].includes(label.textContent ?? "")
+      ))
+    ).toBe(false);
     const storedBeforeCapture = JSON.parse(
       localStorage.getItem(getDailySnapshotStorageKey(getLocalTradingDate())) ?? "{}"
     );
