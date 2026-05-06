@@ -64,15 +64,6 @@ const economicEvents = [
   }
 ];
 
-const externalTools = [
-  { name: "Bookmap", action: "launch" },
-  { name: "SPX Flow (Tradytics)", action: "open" },
-  { name: "SpotGamma", action: "open" },
-  { name: "Unusual Whales", action: "link" },
-  { name: "Macro Calendar", action: "open" },
-  { name: "+ Add Tool", action: "note" }
-];
-
 const tradingBiasOptions: TradingBias[] = [
   "long selective",
   "short selective",
@@ -387,17 +378,6 @@ export function TradingContextModule({ context: _context }: TradingContextModule
         </section>
       </div>
 
-      <footer className="externalToolsStrip" aria-label="External tools notes and links">
-        <div className="externalToolsStrip__label">External Tools <span>Notes / Links</span></div>
-        <nav className="externalToolsStrip__links" aria-label="External trading tools">
-          {externalTools.map((tool) => (
-            <a href="#" key={tool.name} aria-label={`${tool.action} ${tool.name}`}>
-              <strong>{tool.name}</strong>
-              <span>{tool.action}</span>
-            </a>
-          ))}
-        </nav>
-      </footer>
     </SectionPanel>
   );
 }

@@ -24,46 +24,20 @@ function formatGeneratedAt(value: string) {
 export function DashboardShell({ data }: DashboardShellProps) {
   return (
     <main className="dashboardShell">
-      <aside className="sideRail" aria-label="Dashboard navigation">
-        <div className="brandMark">[MC]</div>
-        <nav>
-          <a
-            href="#performance"
-            aria-label="Performance"
-            aria-current="page"
-            className="sideRail__link sideRail__link--active"
-          >
-            <span>PERF</span>
-          </a>
-          <a href="#market" aria-label="SPX market situation" className="sideRail__link">
-            <span>SPX</span>
-          </a>
-          <a href="#gamma" aria-label="Gamma context" className="sideRail__link">
-            <span>GAMMA</span>
-          </a>
-          <a href="#context" aria-label="Trading context" className="sideRail__link">
-            <span>CONTEXT</span>
-          </a>
-        </nav>
-        <div className="sideRail__status" aria-label="Local dashboard status">
-          <div>
-            <span>Data</span>
-            <strong>Mock</strong>
-          </div>
-          <div>
-            <span>Feed</span>
-            <strong>Local</strong>
-          </div>
-        </div>
-      </aside>
-
       <div className="dashboardWorkspace">
         <header className="topBar">
           <div className="topBar__identity">
-            <h1>Market Command</h1>
-            <span>Private dashboard</span>
+            <span className="brandMark">[JC]</span>
+            <div>
+              <h1>Market Command</h1>
+              <span>Private command center</span>
+            </div>
           </div>
           <div className="topBar__telemetry" aria-label="Session telemetry">
+            <div>
+              <span>Access</span>
+              <strong>Private</strong>
+            </div>
             <div>
               <span>Mode</span>
               <strong>Focused</strong>
@@ -80,7 +54,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
               <span>{data.marketSituation.symbol}</span>
               <strong>{formatPrice(data.marketSituation.latestDailyClose)}</strong>
             </div>
-            <StatusBadge tone="positive">Mock data</StatusBadge>
+            <StatusBadge tone="neutral">data: mock</StatusBadge>
           </div>
         </header>
 

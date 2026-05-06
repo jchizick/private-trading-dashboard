@@ -33,6 +33,13 @@ const marketWatchlist = [
   { symbol: "BTCUSDT", last: "64,820.50", change: "+410.20", changePercent: "+0.64%", volume: "38K" }
 ] as const;
 
+const externalTools = [
+  "MMT Terminal",
+  "TradingView",
+  "Coinalyze",
+  "Deribit Options"
+] as const;
+
 function getChangeTone(change: string) {
   return change.startsWith("-") ? "negative" : "positive";
 }
@@ -75,18 +82,6 @@ function formatVolume(value: number | null, fallback: string) {
   }).format(value);
 }
 
-function getStatusTone(status: MarketQuote["status"]): BadgeTone {
-  if (status === "live" || status === "cached") {
-    return "positive";
-  }
-
-  if (status === "unavailable" || status === "error") {
-    return "warning";
-  }
-
-  return "neutral";
-}
-
 function getQuoteSourceState(result: MarketQuotesFetchResult | null): MarketQuoteSourceState {
   if (!result) {
     return "mock";
@@ -120,34 +115,6 @@ function getSourceStateTone(state: MarketQuoteSourceState): BadgeTone {
   return "neutral";
 }
 
-function getCompactSourceLabel(quote: MarketQuote | undefined) {
-  if (!quote) {
-    return "mock";
-  }
-
-  if (quote.provider === "mock") {
-    return "mock";
-  }
-
-  if (quote.displaySymbol === "XAUUSD") {
-    return quote.provider === "twelve" ? "spot" : "futures";
-  }
-
-  if (quote.displaySymbol === "CADUSD" || quote.displaySymbol === "EURUSD") {
-    return "forex";
-  }
-
-  if (quote.displaySymbol === "VIX") {
-    return "vol";
-  }
-
-  if (quote.displaySymbol === "SPX500" && quote.providerSymbol === "^GSPC") {
-    return "fallback";
-  }
-
-  return "proxy";
-}
-
 function markResultAsCached(result: MarketQuotesFetchResult): MarketQuotesFetchResult {
   return {
     ...result,
@@ -160,7 +127,6 @@ function markResultAsCached(result: MarketQuotesFetchResult): MarketQuotesFetchR
     )
   };
 }
-
 
 export function MarketSituationModule({ market }: MarketSituationModuleProps) {
   const [quotesResult, setQuotesResult] = useState<MarketQuotesFetchResult | null>(null);
@@ -261,9 +227,7 @@ export function MarketSituationModule({ market }: MarketSituationModuleProps) {
           : item.last,
         change: quote ? formatSignedPrice(quote.change, item.change) : item.change,
         changePercent: quote ? formatSignedPercent(quote.changePercent, item.changePercent) : item.changePercent,
-        volume: quote ? formatVolume(quote.volume, item.volume) : item.volume,
-        status: quote?.status ?? "mock",
-        metadata: `${getCompactSourceLabel(quote)} / ${quote?.status ?? "mock"}`
+        volume: quote ? formatVolume(quote.volume, item.volume) : item.volume
       };
     })
   ), [quotesResult]);
@@ -360,36 +324,51 @@ export function MarketSituationModule({ market }: MarketSituationModuleProps) {
         </PlaceholderFrame>
       </div>
 
-      <div className="marketWatchlist" aria-label="Supporting market watchlist">
-        <div className="marketWatchlist__header">
-          <span>Symbol</span>
-          <span>Last</span>
-          <span>Chg</span>
-          <span>Chg%</span>
-          <span>Vol</span>
-        </div>
-        {watchlistRows.map((item) => (
-          <div key={item.symbol} className="marketWatchlist__row">
-            <strong className="marketWatchlist__symbol">
-              {item.symbol}
-              <small>{item.metadata}</small>
-            </strong>
-            <span>{item.last}</span>
-            <span className={`marketWatchlist__value marketWatchlist__value--${getChangeTone(item.change)}`}>
-              {item.change}
-            </span>
-            <span className={`marketWatchlist__value marketWatchlist__value--${getChangeTone(item.changePercent)}`}>
-              {item.changePercent}
-            </span>
-            <span>
-              {item.volume}
-              <small className={`marketWatchlist__status marketWatchlist__status--${getStatusTone(item.status)}`}>
-                {item.status}
-              </small>
-            </span>
-          </div>
-        ))}
+      <div className="marketWatchlistDivider" aria-hidden="true">
+        <span>WATCHLIST</span>
       </div>
+
+      <table className="marketWatchlist" aria-label="Supporting market watchlist">
+        <thead>
+          <tr className="marketWatchlist__header">
+            <th scope="col">Symbol</th>
+            <th scope="col">Last</th>
+            <th scope="col">Chg</th>
+            <th scope="col">Chg%</th>
+            <th scope="col">Vol</th>
+          </tr>
+        </thead>
+        <tbody>
+          {watchlistRows.map((item) => (
+            <tr key={item.symbol} className="marketWatchlist__row">
+              <th scope="row" className="marketWatchlist__symbol">
+                {item.symbol}
+              </th>
+              <td>{item.last}</td>
+              <td className={`marketWatchlist__value marketWatchlist__value--${getChangeTone(item.change)}`}>
+                {item.change}
+              </td>
+              <td className={`marketWatchlist__value marketWatchlist__value--${getChangeTone(item.changePercent)}`}>
+                {item.changePercent}
+              </td>
+              <td>
+                {item.volume}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <footer className="externalToolsStrip" aria-label="External trading tools">
+        <div className="externalToolsStrip__label">External Tools</div>
+        <nav className="externalToolsStrip__links" aria-label="External trading tools">
+          {externalTools.map((tool) => (
+            <a href="#" key={tool} aria-label={tool}>
+              <strong>{tool}</strong>
+            </a>
+          ))}
+        </nav>
+      </footer>
 
     </SectionPanel>
   );
