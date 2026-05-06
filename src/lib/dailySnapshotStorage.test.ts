@@ -126,6 +126,59 @@ describe("daily dashboard snapshot localStorage", () => {
     });
   });
 
+  it("normalizes legacy synthesis bias and current position fields when loading", () => {
+    const snapshot = createDailySnapshotForDate("2026-05-04");
+    const legacySnapshot = {
+      ...snapshot,
+      synthesis: {
+        primaryBias: "short selective",
+        whatMattersToday: "Legacy bias should normalize.",
+        conditionsToWatch: "Watch range edges.",
+        invalidation: "Back above VWAP.",
+        operatorNote: "Keep size measured.",
+        updatedAt: "2026-05-04T14:00:00.000Z"
+      },
+      currentPosition: {
+        symbol: "sol",
+        side: "Long",
+        leverage: "10",
+        pnlPercent: 158.64,
+        note: "Runner at resistance.",
+        updatedAt: "2026-05-04T14:05:00.000Z"
+      }
+    };
+    setupLocalStorage({
+      [getDailySnapshotStorageKey("2026-05-04")]: JSON.stringify(legacySnapshot)
+    });
+
+    const loaded = loadDailyDashboardSnapshot("2026-05-04");
+
+    expect(loaded?.synthesis.marketBias).toBe("Short Selective");
+    expect(loaded?.currentPosition).toMatchObject({
+      symbol: "SOL",
+      side: "Long",
+      leverage: "10",
+      pnlPercent: 158.64,
+      note: "Runner at resistance."
+    });
+  });
+
+  it("preserves custom market bias values when loading", () => {
+    const snapshot = createDailySnapshotForDate("2026-05-04");
+    const customSnapshot = {
+      ...snapshot,
+      synthesis: {
+        ...snapshot.synthesis,
+        marketBias: "Volatility Compression"
+      }
+    };
+    setupLocalStorage({
+      [getDailySnapshotStorageKey("2026-05-04")]: JSON.stringify(customSnapshot)
+    });
+
+    expect(loadDailyDashboardSnapshot("2026-05-04")?.synthesis.marketBias).toBe("Volatility Compression");
+  });
+
   it("creates current mock snapshots with captured six-symbol market rows", () => {
     const snapshot = createDailySnapshotForDate("2026-05-04");
 

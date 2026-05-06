@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useDailySnapshot } from "@/components/dashboard/DailySnapshotProvider";
 import { SectionPanel } from "@/components/ui/SectionPanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { ModuleNote } from "@/components/ui/ModuleNote";
 import { parseAccountEquityCsv } from "@/lib/accountEquityCsvImport";
 import {
   clearImportedAccountEquityHistory,
@@ -30,6 +30,7 @@ import {
 } from "@/lib/performanceReviewViewModel";
 import type { EquityImportResult, EquityImportRowError } from "@/types/accountEquityImport";
 import type { PerformanceSnapshot } from "@/types/dashboard";
+import type { CurrentPositionSide, CurrentPositionSnapshot } from "@/types/dailySnapshot";
 import type { AccountEquitySnapshot, ExchangeTradeRecord } from "@/types/performanceSources";
 import type { TradeLedgerImportResult, TradeLedgerImportRowError } from "@/types/tradeLedgerImport";
 
@@ -64,19 +65,26 @@ type PerformanceSourceState = "mock" | "imported";
 type TradeLedgerSourceState = "pending" | "imported";
 const TRADE_LEDGER_ERROR_PREVIEW_LIMIT = 5;
 const TRADE_LEDGER_WARNING_PREVIEW_LIMIT = 3;
+const currentPositionSides: CurrentPositionSide[] = ["Long", "Short", "Flat"];
+
+interface CurrentPositionDraft {
+  symbol: string;
+  side: CurrentPositionSide;
+  leverage: string;
+  pnlPercent: string;
+  note: string;
+}
 
 const performanceSourceCopy = {
   mock: {
     badge: "Mock Data",
     label: "Source: Mock Equity History",
-    chartLabel: "Mock account equity curve",
-    note: "Review focus: account trajectory is derived from mock equity history."
+    chartLabel: "Mock account equity curve"
   },
   imported: {
     badge: "Local CSV",
     label: "Source: Imported CSV",
-    chartLabel: "Local CSV equity curve",
-    note: "Review focus: account trajectory is derived from imported local equity history."
+    chartLabel: "Local CSV equity curve"
   }
 } satisfies Record<
   PerformanceSourceState,
@@ -84,7 +92,6 @@ const performanceSourceCopy = {
     badge: string;
     label: string;
     chartLabel: string;
-    note: string;
   }
 >;
 
@@ -360,6 +367,50 @@ function formatLastUpdated(value: string | null) {
   }).format(date)}`;
 }
 
+function createCurrentPositionDraft(position: CurrentPositionSnapshot | null): CurrentPositionDraft {
+  return {
+    symbol: position?.symbol ?? "",
+    side: position?.side ?? "Flat",
+    leverage: position?.leverage ?? "",
+    pnlPercent: position?.pnlPercent !== null && typeof position?.pnlPercent !== "undefined"
+      ? String(position.pnlPercent)
+      : "",
+    note: position?.note ?? ""
+  };
+}
+
+function formatLeverage(value: string) {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return "";
+  }
+
+  return trimmedValue.toLowerCase().endsWith("x") ? trimmedValue : `${trimmedValue}x`;
+}
+
+function formatPositionPnl(value: number | null) {
+  if (value === null) {
+    return "P&L n/a";
+  }
+
+  const sign = value > 0 ? "+" : "";
+
+  return `${sign}${value.toFixed(2)}% PnL`;
+}
+
+function formatCurrentPosition(position: CurrentPositionSnapshot | null) {
+  if (!position) {
+    return "Current Position: none logged";
+  }
+
+  const symbol = position.symbol || "Unspecified";
+  const leverage = formatLeverage(position.leverage);
+  const direction = leverage ? `${position.side.toUpperCase()} ${leverage}` : position.side.toUpperCase();
+
+  return `${symbol} / ${direction} / ${formatPositionPnl(position.pnlPercent)}`;
+}
+
 function getLatestValidTimestamp(values: Array<string | null | undefined>) {
   const validTimestamps = values
     .filter((value): value is string => !!value)
@@ -507,6 +558,7 @@ function TradeLedgerImportIssues({ result }: { result: TradeLedgerImportResult }
 }
 
 export function PerformanceModule({ performance }: PerformanceModuleProps) {
+  const { activeDate, dailySnapshot, updateSnapshot } = useDailySnapshot();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const tradeLedgerFileInputRef = useRef<HTMLInputElement>(null);
   const [currentPerformance, setCurrentPerformance] = useState(performance);
@@ -518,14 +570,21 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
   const [tradeLedgerImportMessage, setTradeLedgerImportMessage] = useState("");
   const [equityImportedAt, setEquityImportedAt] = useState<string | null>(null);
   const [tradeLedgerImportedAt, setTradeLedgerImportedAt] = useState<string | null>(null);
+  const [isEditingPosition, setIsEditingPosition] = useState(false);
+  const [positionDraft, setPositionDraft] = useState<CurrentPositionDraft>(() =>
+    createCurrentPositionDraft(dailySnapshot.currentPosition)
+  );
+  const [positionError, setPositionError] = useState<string | null>(null);
   const sourceCopy = performanceSourceCopy[performanceSource];
   const isUsingImportedData = performanceSource === "imported";
   const isUsingTradeLedgerData = tradeLedgerSource === "imported";
   const latestImportTimestamp = getLatestValidTimestamp([equityImportedAt, tradeLedgerImportedAt]);
-  const reviewNote =
-    tradeLedgerSource === "imported"
-      ? `${sourceCopy.note} Trade-ledger stats are derived from imported exchange close records.`
-      : `${sourceCopy.note} Trade-ledger stats remain pending until an exchange CSV is imported.`;
+
+  useEffect(() => {
+    setPositionDraft(createCurrentPositionDraft(dailySnapshot.currentPosition));
+    setIsEditingPosition(false);
+    setPositionError(null);
+  }, [activeDate, dailySnapshot.currentPosition]);
 
   useEffect(() => {
     const importedHistory = loadImportedAccountEquityHistory();
@@ -713,6 +772,77 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
     setTradeLedgerImportedAt(null);
     setTradeLedgerImportResult(null);
     setTradeLedgerImportMessage("Trade ledger cleared. Metrics are pending import.");
+  }
+
+  function beginPositionEdit() {
+    setPositionDraft(createCurrentPositionDraft(dailySnapshot.currentPosition));
+    setPositionError(null);
+    setIsEditingPosition(true);
+  }
+
+  function cancelPositionEdit() {
+    setPositionDraft(createCurrentPositionDraft(dailySnapshot.currentPosition));
+    setPositionError(null);
+    setIsEditingPosition(false);
+  }
+
+  function updatePositionDraft<Field extends keyof CurrentPositionDraft>(
+    field: Field,
+    value: CurrentPositionDraft[Field]
+  ) {
+    setPositionDraft((current) => ({
+      ...current,
+      [field]: value
+    }));
+  }
+
+  function saveCurrentPosition() {
+    const symbol = positionDraft.symbol.trim().toUpperCase();
+    const leverage = formatLeverage(positionDraft.leverage);
+    const note = positionDraft.note.trim();
+    const pnlText = positionDraft.pnlPercent.trim();
+    const pnlPercent = pnlText ? Number(pnlText) : null;
+
+    if (pnlText && !Number.isFinite(pnlPercent)) {
+      setPositionError("PnL must be numeric.");
+      return;
+    }
+
+    const hasPosition = symbol || leverage || pnlPercent !== null || positionDraft.side !== "Flat" || note;
+    const now = new Date().toISOString();
+
+    updateSnapshot((snapshot) => ({
+      ...snapshot,
+      status: "saved" as const,
+      updatedAt: now,
+      currentPosition: hasPosition
+        ? {
+            symbol,
+            side: positionDraft.side,
+            leverage,
+            pnlPercent,
+            note: note || undefined,
+            updatedAt: now
+          }
+        : null
+    }));
+
+    setPositionError(null);
+    setIsEditingPosition(false);
+  }
+
+  function clearCurrentPosition() {
+    const now = new Date().toISOString();
+
+    updateSnapshot((snapshot) => ({
+      ...snapshot,
+      status: "saved" as const,
+      updatedAt: now,
+      currentPosition: null
+    }));
+    setPositionDraft(createCurrentPositionDraft(null));
+    setPositionError(null);
+    setIsEditingPosition(false);
   }
 
   return (
@@ -954,7 +1084,87 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
             </StatusBadge>
           ))}
         </div>
-        <ModuleNote>{reviewNote}</ModuleNote>
+        <div className="currentPositionPanel" aria-label="Current Position">
+          <div className="currentPositionPanel__header">
+            <div>
+              <span>Current Position</span>
+              <strong>{formatCurrentPosition(dailySnapshot.currentPosition)}</strong>
+            </div>
+            {isEditingPosition ? (
+              <div className="currentPositionPanel__actions">
+                <button className="terminalButton terminalButton--primary" type="button" onClick={saveCurrentPosition}>
+                  Save
+                </button>
+                <button className="terminalButton" type="button" onClick={cancelPositionEdit}>
+                  Cancel
+                </button>
+                {dailySnapshot.currentPosition ? (
+                  <button className="terminalButton" type="button" onClick={clearCurrentPosition}>
+                    Clear
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <button className="terminalButton" type="button" onClick={beginPositionEdit}>
+                Edit
+              </button>
+            )}
+          </div>
+          {isEditingPosition ? (
+            <div className="currentPositionEditor">
+              <label>
+                <span>Symbol</span>
+                <input
+                  value={positionDraft.symbol}
+                  onChange={(event) => updatePositionDraft("symbol", event.target.value)}
+                  placeholder="SOL"
+                />
+              </label>
+              <label>
+                <span>Side</span>
+                <select
+                  value={positionDraft.side}
+                  onChange={(event) => updatePositionDraft("side", event.target.value as CurrentPositionSide)}
+                >
+                  {currentPositionSides.map((side) => (
+                    <option value={side} key={side}>
+                      {side}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>Leverage</span>
+                <input
+                  value={positionDraft.leverage}
+                  onChange={(event) => updatePositionDraft("leverage", event.target.value)}
+                  placeholder="10x"
+                />
+              </label>
+              <label>
+                <span>PnL %</span>
+                <input
+                  inputMode="decimal"
+                  type="number"
+                  value={positionDraft.pnlPercent}
+                  onChange={(event) => updatePositionDraft("pnlPercent", event.target.value)}
+                  placeholder="158.64"
+                />
+              </label>
+              <label className="currentPositionEditor__note">
+                <span>Note</span>
+                <input
+                  value={positionDraft.note}
+                  onChange={(event) => updatePositionDraft("note", event.target.value)}
+                  placeholder="Optional"
+                />
+              </label>
+              {positionError ? <p className="currentPositionPanel__error">{positionError}</p> : null}
+            </div>
+          ) : dailySnapshot.currentPosition?.note ? (
+            <p className="currentPositionPanel__note">{dailySnapshot.currentPosition.note}</p>
+          ) : null}
+        </div>
       </div>
 
       <p className="performanceUpdated">Last Updated: {formatLastUpdated(latestImportTimestamp)}</p>

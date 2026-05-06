@@ -9,7 +9,9 @@ Currently working:
 - Daily snapshot localStorage persistence by trading date.
 - Daily snapshot date switching and archive access.
 - Editable Synthesis Notes.
+- Selectable Synthesis Notes Market Bias options.
 - Toggleable Trading Checklist statuses.
+- Manual Current Position input in Performance Review.
 - Editable Gamma Snapshot fields.
 - Performance Review account equity CSV import.
 - Performance Review exchange trade ledger CSV import.
@@ -138,16 +140,30 @@ Use the dashboard as a daily command read:
 2. Review the live/mock market context, Fear & Greed, Gamma Context, and Performance Review.
 3. Edit Synthesis Notes with the current bias, what matters today, conditions to watch, invalidation, and operator note.
 4. Toggle Trading Checklist items as external tools are checked.
-5. Around the 10:05 AM ET gamma check convention, edit Gamma Snapshot with Major Positive Gamma, Major Negative Gamma, Zero Gamma / Flip, status, and last checked time.
-6. Upload or drag in the daily `@gexbot15` gamma chart image when useful for visual reference.
-7. Save edits into the date-specific daily snapshot.
+5. Log the manual Current Position in Performance Review when useful for the daily command read.
+6. Around the 10:05 AM ET gamma check convention, edit Gamma Snapshot with Major Positive Gamma, Major Negative Gamma, Zero Gamma / Flip, status, and last checked time.
+7. Upload or drag in the daily `@gexbot15` gamma chart image when useful for visual reference.
+8. Save edits into the date-specific daily snapshot.
 
 Date behavior:
 
 - Daily snapshots are keyed by trading date.
 - Switching dates loads that date's saved snapshot or creates a draft from the mock daily snapshot template.
 - Saved snapshot dates are inferred from localStorage keys.
-- Switching dates discards unsaved Synthesis Notes and Gamma edit drafts.
+- Switching dates discards unsaved Synthesis Notes, Gamma, and Current Position edit drafts.
+
+Synthesis behavior:
+
+- Market Bias is saved in `DailyDashboardSnapshot.synthesis.marketBias`.
+- The selectable bias options are `Bullish`, `Bearish`, `Neutral`, `Long Selective`, `Short Selective`, `Range / Chop`, and `Risk Off`.
+- Legacy/custom saved bias values are preserved and can still render in the selector.
+
+Current Position behavior:
+
+- Current Position is manual daily state stored in `DailyDashboardSnapshot.currentPosition`.
+- Saved display format is compact, for example `SOL / LONG 10x / +158.64% PnL`.
+- Empty dates show `Current Position: none logged`.
+- Current Position is not imported account equity data, not imported trade ledger data, and does not affect trade-ledger calculations.
 
 Gamma behavior:
 
@@ -265,6 +281,7 @@ Behavior:
 - Exact duplicate close rows are skipped with warnings, are not imported, and are not counted in metrics.
 - Clearing trade ledger removes only exchange trade ledger records and its import summary.
 - Clearing trade ledger does not remove account equity history.
+- Manual Current Position does not read from or write to exchange trade ledger storage.
 
 ## Live Data Behavior
 

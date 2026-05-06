@@ -46,7 +46,9 @@
 - [x] Create shared daily snapshot provider/hook for loading or creating today's snapshot.
 - [ ] Add edit flows for manual review notes and context snapshots.
 - [x] Add manual edit flow for Synthesis Notes.
+- [x] Add selectable Market Bias options for Synthesis Notes.
 - [x] Add checklist status toggles.
+- [x] Add manual daily Current Position input in Performance Review.
 - [x] Add localStorage persistence for daily snapshots.
 - [ ] Add saved daily market read state.
 - [x] Add snapshot archive concept by trading date.
@@ -121,4 +123,5 @@
 - [x] Add browser cache save/load path tests for live data.
 - [x] Add localStorage helper tests for daily snapshots and imported performance sources.
 - [x] Add component hydration behavior tests for live data modules.
-- [ ] Add smoke tests or component tests once interactive workflows begin.
+- [x] Add focused component tests for manual workflow inputs.
+- [ ] Add broader smoke tests once manual workflows settle.

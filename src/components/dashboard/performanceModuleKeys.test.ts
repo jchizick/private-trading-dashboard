@@ -5,7 +5,9 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DailySnapshotProvider } from "@/components/dashboard/DailySnapshotProvider";
 import { PerformanceModule } from "@/components/dashboard/PerformanceModule";
+import { createLocalStorageMock } from "@/test/localStorageMock";
 import type { PerformanceSnapshot } from "@/types/dashboard";
 
 const performanceWithRepeatedWeekdays: PerformanceSnapshot = {
@@ -51,6 +53,10 @@ describe("PerformanceModule React keys", () => {
     (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.replaceChildren(container);
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      value: createLocalStorageMock()
+    });
     root = null;
     consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
   });
@@ -70,7 +76,13 @@ describe("PerformanceModule React keys", () => {
     root = createRoot(container);
 
     await act(async () => {
-      root?.render(React.createElement(PerformanceModule, { performance: performanceWithRepeatedWeekdays }));
+      root?.render(
+        React.createElement(
+          DailySnapshotProvider,
+          null,
+          React.createElement(PerformanceModule, { performance: performanceWithRepeatedWeekdays })
+        )
+      );
     });
 
     expect(getDuplicateKeyMessages(consoleErrorSpy)).toEqual([]);

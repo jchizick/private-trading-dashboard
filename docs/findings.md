@@ -2270,3 +2270,31 @@ Sample reviewed terminal values from the verification run:
 
 - Extended DashboardShell hydration coverage for topbar live SPX/current-time rendering, pending capture copy, and imported Performance footer timestamps.
 - Extended Gamma image coverage for uploaded-image timestamp fallback from saved `gamma.updatedAt`.
+
+## Trading Context Workflow Inputs - 2026-05-06
+
+### Data Model Findings
+
+- The old Synthesis Notes bias field was `primaryBias` with a narrow lowercase union; this could not represent `Bullish`, `Bearish`, `Range / Chop`, or `Risk Off` without a schema update.
+- `DailyDashboardSnapshot.synthesis.marketBias` is now the active persisted field, while legacy `primaryBias` values normalize into `marketBias` on load.
+- Legacy values such as `long selective`, `short selective`, and `no trade` normalize to the closest current selector values; unknown custom values are preserved.
+- Current Position fits the daily command-read boundary because it is date-specific manual state, not account-history source data or imported execution records.
+- `DailyDashboardSnapshot.currentPosition` remains nullable so dates without a logged position do not fabricate a position.
+
+### UI Findings
+
+- The Market Bias edit control is now a selector with the expected options: `Bullish`, `Bearish`, `Neutral`, `Long Selective`, `Short Selective`, `Range / Chop`, and `Risk Off`.
+- The Performance Review footer no longer renders the review-focus explanatory note.
+- Current Position read mode shows either a compact summary such as `SOL / LONG 10x / +158.64% PnL` or `Current Position: none logged`.
+- Current Position edit mode supports symbol, side, leverage, PnL percent, optional note, Save, Cancel, and Clear without changing import controls.
+
+### Boundary Findings
+
+- Current Position writes only to the active daily snapshot localStorage object.
+- Imported account equity storage, exchange trade ledger storage, CSV formats, calculations, market quote routes, market candle routes, auth, and dependencies were not changed.
+
+### Tests
+
+- Added workflow input component coverage for Market Bias save/cancel/date isolation.
+- Added workflow input component coverage for Current Position save/load/clear/date isolation and imported storage separation.
+- Added daily snapshot storage coverage for legacy bias normalization, custom bias preservation, and current position normalization.

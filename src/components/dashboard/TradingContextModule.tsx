@@ -8,7 +8,8 @@ import { cloneSynthesisNotes } from "@/lib/dailySnapshotFactory";
 import type {
   ChecklistStatus,
   SynthesisNotes,
-  TradingBias
+  TradingBias,
+  TradingBiasOption
 } from "@/types/dailySnapshot";
 import type { TradingContext } from "@/types/dashboard";
 
@@ -64,11 +65,14 @@ const economicEvents = [
   }
 ];
 
-const tradingBiasOptions: TradingBias[] = [
-  "long selective",
-  "short selective",
-  "neutral",
-  "no trade"
+const tradingBiasOptions: TradingBiasOption[] = [
+  "Bullish",
+  "Bearish",
+  "Neutral",
+  "Long Selective",
+  "Short Selective",
+  "Range / Chop",
+  "Risk Off"
 ];
 
 const checklistStatusCycle: ChecklistStatus[] = ["not checked", "watch", "checked"];
@@ -100,6 +104,12 @@ function getImpactTone(impact: string) {
 function getNextChecklistStatus(status: ChecklistStatus) {
   const currentIndex = checklistStatusCycle.indexOf(status);
   return checklistStatusCycle[(currentIndex + 1) % checklistStatusCycle.length];
+}
+
+function getBiasOptions(currentBias: TradingBias) {
+  return tradingBiasOptions.includes(currentBias as TradingBiasOption)
+    ? tradingBiasOptions
+    : [...tradingBiasOptions, currentBias];
 }
 
 export function TradingContextModule({ context: _context }: TradingContextModuleProps) {
@@ -214,7 +224,7 @@ export function TradingContextModule({ context: _context }: TradingContextModule
               </select>
             </label>
           </div>
-          <StatusBadge tone="neutral">{dailySnapshot.synthesis.primaryBias}</StatusBadge>
+          <StatusBadge tone="neutral">{dailySnapshot.synthesis.marketBias}</StatusBadge>
           {isEditingSynthesis ? (
             <>
               <button className="terminalButton terminalButton--primary" type="button" onClick={saveSynthesisEdit}>
@@ -280,10 +290,10 @@ export function TradingContextModule({ context: _context }: TradingContextModule
               <label className="synthesisField synthesisField--bias">
                 <span>Market bias</span>
                 <select
-                  value={draftSynthesis.primaryBias}
-                  onChange={(event) => updateDraftSynthesis("primaryBias", event.target.value as TradingBias)}
+                  value={draftSynthesis.marketBias}
+                  onChange={(event) => updateDraftSynthesis("marketBias", event.target.value as TradingBias)}
                 >
-                  {tradingBiasOptions.map((bias) => (
+                  {getBiasOptions(draftSynthesis.marketBias).map((bias) => (
                     <option value={bias} key={bias}>
                       {bias}
                     </option>
@@ -327,7 +337,7 @@ export function TradingContextModule({ context: _context }: TradingContextModule
             <div className="synthesisNotes">
               <div className="synthesisNotes__bias">
                 <span>Market bias</span>
-                <strong>{dailySnapshot.synthesis.primaryBias}</strong>
+                <strong>{dailySnapshot.synthesis.marketBias}</strong>
               </div>
               <dl>
                 <div>

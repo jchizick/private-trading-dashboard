@@ -131,6 +131,7 @@ export const mockDailyDashboardSnapshot = {
     capturedAt: "2026-05-01T09:00:00-04:00"
   },
   synthesis: {
+    marketBias: "Long Selective",
     primaryBias: "long selective",
     whatMattersToday: "Wait for external orderflow confirmation before pressing continuation.",
     conditionsToWatch: "Respect SPX balance conditions; require external confirmation before pressing size.",
@@ -197,6 +198,7 @@ export const mockDailyDashboardSnapshot = {
       updatedAt: "2026-05-01T13:27:00-04:00"
     }
   ],
+  currentPosition: null,
   performanceReview: {
     asOfDate: "2026-05-01",
     accountEquity: {

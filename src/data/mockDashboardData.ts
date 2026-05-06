@@ -7,7 +7,7 @@ const derivedPerformanceReview = derivePerformanceReviewSnapshot(mockAccountEqui
   asOfDate: "2026-05-01",
   note: {
     text:
-      "Review focus: account trajectory is derived from equity history only. Trade-ledger stats stay unavailable until exchange imports are added.",
+      "Account trajectory is derived from equity history only; manual current position stays in daily snapshot state.",
     tags: ["discipline", "risk contained", "trade ledger pending"],
     updatedAt: "2026-05-01T09:42:00-04:00"
   }

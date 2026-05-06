@@ -3829,6 +3829,111 @@ body {
   padding-top: 2px;
 }
 
+.currentPositionPanel {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(39, 55, 56, 0.82);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(54, 189, 126, 0.022), transparent),
+    rgba(5, 10, 11, 0.72);
+}
+
+.currentPositionPanel__header,
+.currentPositionPanel__actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.currentPositionPanel__header {
+  justify-content: space-between;
+}
+
+.currentPositionPanel__header>div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.currentPositionPanel__header span,
+.currentPositionEditor span {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.54rem;
+  text-transform: uppercase;
+}
+
+.currentPositionPanel__header strong {
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.currentPositionEditor {
+  display: grid;
+  grid-template-columns: minmax(74px, 0.85fr) minmax(78px, 0.8fr) minmax(68px, 0.75fr) minmax(76px, 0.85fr);
+  gap: 6px;
+}
+
+.currentPositionEditor label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.currentPositionEditor__note {
+  grid-column: 1 / -1;
+}
+
+.currentPositionEditor input,
+.currentPositionEditor select {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  border: 1px solid rgba(39, 55, 56, 0.88);
+  border-radius: 3px;
+  color: #c8d8d1;
+  background: rgba(2, 6, 7, 0.72);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.currentPositionEditor input {
+  padding: 4px 6px;
+}
+
+.currentPositionEditor select {
+  padding: 2px 6px;
+}
+
+.currentPositionEditor input:focus,
+.currentPositionEditor select:focus {
+  outline: 1px solid rgba(64, 196, 141, 0.66);
+  outline-offset: 0;
+  border-color: rgba(64, 196, 141, 0.5);
+}
+
+.currentPositionPanel__note,
+.currentPositionPanel__error {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1.35;
+}
+
+.currentPositionPanel__error {
+  grid-column: 1 / -1;
+  color: var(--danger);
+}
+
 .performanceImportActions {
   position: relative;
 }

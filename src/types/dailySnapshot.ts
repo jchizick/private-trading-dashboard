@@ -7,7 +7,15 @@ import type { MarketQuoteProvider, MarketQuoteStatus } from "@/types/marketQuote
 
 export type SnapshotStatus = "draft" | "saved" | "archived";
 export type ChecklistStatus = "checked" | "watch" | "not checked";
-export type TradingBias = "long selective" | "short selective" | "neutral" | "no trade";
+export type TradingBiasOption =
+  | "Bullish"
+  | "Bearish"
+  | "Neutral"
+  | "Long Selective"
+  | "Short Selective"
+  | "Range / Chop"
+  | "Risk Off";
+export type TradingBias = TradingBiasOption | (string & {});
 export type RiskState = "constructive" | "balanced" | "defensive";
 export type TrendDirection = "bullish" | "bearish" | "neutral";
 export type SessionStatus = "positive" | "negative" | "mixed";
@@ -16,6 +24,7 @@ export type GammaStatus = "pending" | "not_checked" | "checked" | "unavailable" 
 export type MarketQuoteSourceState = "live" | "cached" | "partial" | "mock";
 export type DailySnapshotSource = "manual" | "mock" | "market_data";
 export type FearGreedLabel = "Extreme Fear" | "Fear" | "Neutral" | "Greed" | "Extreme Greed" | "Unknown";
+export type CurrentPositionSide = "Long" | "Short" | "Flat";
 
 export interface CapturedMarketQuoteRow {
   displaySymbol: string;
@@ -48,6 +57,7 @@ export interface DailyDashboardSnapshot {
   fearGreed: FearGreedSnapshot;
   synthesis: SynthesisNotes;
   checklist: TradingChecklistItem[];
+  currentPosition: CurrentPositionSnapshot | null;
   performanceReview: PerformanceReviewSnapshot;
   externalToolLinks: ExternalToolLink[];
 }
@@ -104,11 +114,21 @@ export interface FearGreedSnapshot {
 }
 
 export interface SynthesisNotes {
-  primaryBias: TradingBias;
+  marketBias: TradingBias;
+  primaryBias?: TradingBias;
   whatMattersToday: string;
   conditionsToWatch: string;
   invalidation: string;
   operatorNote: string;
+  updatedAt: ISODateTime;
+}
+
+export interface CurrentPositionSnapshot {
+  symbol: string;
+  side: CurrentPositionSide;
+  leverage: string;
+  pnlPercent: number | null;
+  note?: string;
   updatedAt: ISODateTime;
 }
 

@@ -778,6 +778,16 @@
 - Preserved storage boundaries: live quote/cache data, Fear & Greed cache, imported performance source storage, and daily snapshot persistence remain separate.
 - Added focused hydration/Gamma coverage for navbar quote/time behavior, pending capture state, imported Performance footer timestamps, and uploaded-image Gamma timestamp fallback.
 
+## Trading Context Workflow Inputs - 2026-05-06
+
+- Added `DailyDashboardSnapshot.synthesis.marketBias` as the active Market Bias field, with legacy `primaryBias` normalization for older saved snapshots.
+- Updated Synthesis Notes editing to use selectable bias options: `Bullish`, `Bearish`, `Neutral`, `Long Selective`, `Short Selective`, `Range / Chop`, and `Risk Off`.
+- Preserved custom saved bias values by adding the custom value to the selector rather than rejecting it.
+- Added nullable `DailyDashboardSnapshot.currentPosition` manual daily state with symbol, side, leverage, PnL percent, optional note, and updated timestamp.
+- Replaced the Performance Review footer review-focus note with a compact Current Position read/edit/clear workflow.
+- Current Position persists by active trading date through the existing daily snapshot localStorage key and remains separate from account equity imports and exchange trade ledger imports.
+- Added focused workflow input tests for Market Bias save/cancel/date switching, Current Position save/load/clear/date switching, imported source storage separation, and snapshot normalization.
+
 ## Next Steps
 
 - Expand tests into focused interaction smoke coverage and view-model adapters before broadening source inputs further.

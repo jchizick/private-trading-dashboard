@@ -16,6 +16,7 @@
 - Trade-ledger net realized PNL is after fees: `closingPnl - abs(fee)`. Gross closing PNL and total fees should remain separately available.
 - Trade-ledger-derived metrics must not be faked from account equity history. If exchange trade records are unavailable, trade count, win rate, average win/loss, profit factor, fees, and symbol/direction breakdowns should be marked unavailable or future import.
 - Daily snapshots should store point-in-time review summaries and daily context, not full equity history or full trade ledgers.
+- Manual current position belongs to `DailyDashboardSnapshot.currentPosition` as date-specific daily command state; it must not be mixed into imported account equity history, imported exchange trade ledger records, or trade-ledger calculations.
 - Static checklist definitions and external tool default links should remain configuration, while daily checklist statuses belong to saved snapshots.
 - Daily Gamma Context values belong to `DailyDashboardSnapshot.gamma`, not a separate global cache or provider cache.
 - Manual Gamma chart images also belong to `DailyDashboardSnapshot.gamma.distributionImageUrl` as date-specific local browser data URLs for the MVP.
@@ -59,6 +60,7 @@
 - `GammaContextModule` now reads saved daily gamma values from `DailySnapshotProvider` and uses `GammaContext` only for current display-shell context such as the mock distribution label.
 - `FearGreedModule` consumes an initial mock `FearGreedSnapshot` and can hydrate from the internal `/api/fear-greed` route after client mount.
 - `TradingContextModule` consumes a `TradingContext` for the surrounding module contract and currently initializes editable Synthesis Notes from `DailyDashboardSnapshot.synthesis`.
+- `TradingContextModule` stores the operator Market Bias in `DailyDashboardSnapshot.synthesis.marketBias`; legacy `primaryBias` values normalize into this field.
 - `TradingContextModule` currently initializes interactive Trading Checklist status state from `DailyDashboardSnapshot.checklist`.
 - `DailySnapshotProvider` owns the active editable `DailyDashboardSnapshot` prototype object, active date, saved date list, date switching, and localStorage persistence under `market-command:daily-snapshot:${date}`.
 - `DailySnapshotProvider` also owns transient typed market/sentiment capture candidates for a future explicit capture action; those candidates are not saved until a user action writes them into the active snapshot.
@@ -69,6 +71,7 @@
 - Switching the active date also auto-cancels unsaved Gamma Context edits and loads that date's `DailyDashboardSnapshot.gamma`.
 - `PerformanceModule` still consumes the frontend `PerformanceSnapshot` view model, but that view model is now adapted from an equity-history-derived `PerformanceReviewSnapshot`.
 - `PerformanceModule` owns the local CSV import UI and client-side source switch between mock equity history and imported local account equity history.
+- `PerformanceModule` also reads and writes manual `DailyDashboardSnapshot.currentPosition` state through `DailySnapshotProvider`; this is not imported trade ledger data.
 - Client-side edit and persistence state should remain narrowly scoped until a dedicated daily snapshot state hook or provider is introduced.
 - Shared UI primitives consume display-ready props and do not own domain decisions.
 - `SectionPanel` owns repeated panel framing, title, description, action, and body layout.
@@ -115,7 +118,9 @@
 - Browser stale cache helpers for market quotes are defined in `src/lib/marketQuoteStorage.ts`.
 - Gamma snapshot defaults and normalization helpers are defined in `src/lib/gammaSnapshot.ts`.
 - The persistence root is `DailyDashboardSnapshot`.
-- Daily snapshot submodels include `SpxSnapshot`, `GammaSnapshot`, `FearGreedSnapshot`, `SynthesisNotes`, `TradingChecklistItem`, `ExternalToolLink`, `PerformanceReviewSnapshot`, and `PerformanceReviewNote`.
+- Daily snapshot submodels include `SpxSnapshot`, `GammaSnapshot`, `FearGreedSnapshot`, `SynthesisNotes`, `CurrentPositionSnapshot`, `TradingChecklistItem`, `ExternalToolLink`, `PerformanceReviewSnapshot`, and `PerformanceReviewNote`.
+- Synthesis Notes Market Bias options are `Bullish`, `Bearish`, `Neutral`, `Long Selective`, `Short Selective`, `Range / Chop`, and `Risk Off`; custom legacy values should be preserved instead of crashing the edit flow.
+- Current Position stores manual `symbol`, `side`, `leverage`, `pnlPercent`, optional `note`, and `updatedAt` for the active daily snapshot.
 - Captured market quote rows in daily snapshots preserve display symbol, price, change, change percent, provider, provider symbol, quote status, source label, and provider timestamp.
 - Performance source models include `AccountEquitySnapshot` for Google Sheet equity history and `ExchangeTradeRecord` for exchange CSV/XLSX trade ledger imports.
 - Module data contracts are `PerformanceSnapshot`, `MarketSituation`, `GammaContext`, and `TradingContext`.
@@ -152,6 +157,6 @@
 - Financial Modeling Prep and Twelve Data market quotes now use a server-side proxy route, server memory cache, browser stale cache, and mock/unavailable fallback behavior.
 - No broad validation layer exists; account equity CSV import has focused parser validation only.
 - SPX/watchlist and Fear & Greed modules publish typed transient capture candidates, and the explicit Capture Market Snapshot action persists them into the active daily snapshot.
-- No gamma image upload implementation exists.
+- Gamma image upload exists as local daily snapshot state only.
 - Vitest now covers account equity CSV import and account equity return calculations; broader test coverage is still pending.
 - Dependency ranges are pinned for deployment hardening.

@@ -3,6 +3,7 @@ import { createDefaultGammaSnapshotForDate, normalizeGammaSnapshot } from "@/lib
 import { sortDailyMarketCaptureRows } from "@/lib/dailyMarketSnapshotCapture";
 import type {
   CapturedMarketQuoteRow,
+  CurrentPositionSnapshot,
   DailyDashboardSnapshot,
   FearGreedLabel,
   FearGreedSnapshot,
@@ -15,7 +16,7 @@ import type { MarketQuoteProvider, MarketQuoteStatus } from "@/types/marketQuote
 export const DEFAULT_DAILY_SNAPSHOT_TRADING_DATE = mockDailyDashboardSnapshot.tradingDate;
 
 export function cloneSynthesisNotes(synthesis: SynthesisNotes): SynthesisNotes {
-  return { ...synthesis };
+  return { ...synthesis, marketBias: normalizeMarketBias(synthesis.marketBias ?? synthesis.primaryBias) };
 }
 
 export function cloneDailySnapshot(snapshot: DailyDashboardSnapshot): DailyDashboardSnapshot {
@@ -28,6 +29,29 @@ function normalizeNullableNumber(value: unknown) {
 
 function normalizeString(value: unknown) {
   return typeof value === "string" ? value : null;
+}
+
+function normalizeMarketBias(value: unknown): string {
+  if (typeof value !== "string") {
+    return "Neutral";
+  }
+
+  const trimmedValue = value.trim();
+  const legacyMap: Record<string, string> = {
+    bullish: "Bullish",
+    bearish: "Bearish",
+    neutral: "Neutral",
+    "long selective": "Long Selective",
+    "short selective": "Short Selective",
+    "range / chop": "Range / Chop",
+    "range/chop": "Range / Chop",
+    chop: "Range / Chop",
+    "risk off": "Risk Off",
+    "risk-off": "Risk Off",
+    "no trade": "Risk Off"
+  };
+
+  return legacyMap[trimmedValue.toLowerCase()] ?? trimmedValue;
 }
 
 function normalizeMarketQuoteProvider(value: unknown): MarketQuoteProvider {
@@ -151,12 +175,58 @@ function normalizeFearGreedSnapshot(
   };
 }
 
+function normalizeCurrentPosition(value: unknown, updatedAt: string): CurrentPositionSnapshot | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const candidate = value as Partial<CurrentPositionSnapshot>;
+  const symbol = normalizeString(candidate.symbol)?.trim().toUpperCase() ?? "";
+  const leverage = normalizeString(candidate.leverage)?.trim() ?? "";
+  const note = normalizeString(candidate.note)?.trim();
+  const side =
+    candidate.side === "Long" || candidate.side === "Short" || candidate.side === "Flat"
+      ? candidate.side
+      : "Flat";
+  const pnlPercent = normalizeNullableNumber(candidate.pnlPercent);
+  const hasPosition = symbol || leverage || pnlPercent !== null || side !== "Flat" || note;
+
+  if (!hasPosition) {
+    return null;
+  }
+
+  return {
+    symbol,
+    side,
+    leverage,
+    pnlPercent,
+    note: note || undefined,
+    updatedAt: normalizeString(candidate.updatedAt) ?? updatedAt
+  };
+}
+
+function normalizeSynthesisNotes(synthesis: DailyDashboardSnapshot["synthesis"], updatedAt: string): SynthesisNotes {
+  const candidate = (synthesis ?? {}) as Partial<SynthesisNotes>;
+
+  return {
+    ...candidate,
+    marketBias: normalizeMarketBias(candidate.marketBias ?? candidate.primaryBias),
+    whatMattersToday: normalizeString(candidate.whatMattersToday) ?? "",
+    conditionsToWatch: normalizeString(candidate.conditionsToWatch) ?? "",
+    invalidation: normalizeString(candidate.invalidation) ?? "",
+    operatorNote: normalizeString(candidate.operatorNote) ?? "",
+    updatedAt: normalizeString(candidate.updatedAt) ?? updatedAt
+  };
+}
+
 export function normalizeDailyDashboardSnapshot(snapshot: DailyDashboardSnapshot): DailyDashboardSnapshot {
   return {
     ...snapshot,
     spx: normalizeSpxSnapshot(snapshot.spx, snapshot.updatedAt),
     gamma: normalizeGammaSnapshot(snapshot.gamma, snapshot.tradingDate, snapshot.updatedAt),
-    fearGreed: normalizeFearGreedSnapshot(snapshot.fearGreed, snapshot.updatedAt)
+    fearGreed: normalizeFearGreedSnapshot(snapshot.fearGreed, snapshot.updatedAt),
+    synthesis: normalizeSynthesisNotes(snapshot.synthesis, snapshot.updatedAt),
+    currentPosition: normalizeCurrentPosition(snapshot.currentPosition, snapshot.updatedAt)
   };
 }
 
@@ -184,6 +254,7 @@ export function createDailySnapshotForDate(tradingDate: string): DailyDashboardS
       updatedAt: now
     })),
     gamma: createDefaultGammaSnapshotForDate(tradingDate, now),
+    currentPosition: null,
     performanceReview: {
       ...snapshot.performanceReview,
       asOfDate: tradingDate
