@@ -34,10 +34,10 @@ const marketWatchlist = [
 ] as const;
 
 const externalTools = [
-  "MMT Terminal",
-  "TradingView",
-  "Coinalyze",
-  "Deribit Options"
+  { label: "MMT Terminal", href: "https://app.mmt.gg/" },
+  { label: "TradingView", href: "https://www.tradingview.com/chart/wtsoA1en/?symbol=SP%3ASPX" },
+  { label: "Coinalyze", href: "https://coinalyze.net/bitcoin/usd/binance/btcusd_perp/price-chart-live/" },
+  { label: "Deribit Options", href: "https://www.deribit.com/statistics/BTC/metrics/options" }
 ] as const;
 
 function getChangeTone(change: string) {
@@ -253,7 +253,7 @@ export function MarketSituationModule({ market }: MarketSituationModuleProps) {
       className="sectionPanel--marketAnchor"
     >
       <div className="marketGrid">
-        <PlaceholderFrame label={market.chartPlaceholderLabel} variant="chart">
+        <PlaceholderFrame hideLabel label={`${market.symbol} candlestick chart`} variant="chart">
           <MarketOverviewCandlesChart
             fallback={(
               <>
@@ -363,8 +363,8 @@ export function MarketSituationModule({ market }: MarketSituationModuleProps) {
         <div className="externalToolsStrip__label">External Tools</div>
         <nav className="externalToolsStrip__links" aria-label="External trading tools">
           {externalTools.map((tool) => (
-            <a href="#" key={tool} aria-label={tool}>
-              <strong>{tool}</strong>
+            <a href={tool.href} key={tool.label} aria-label={tool.label} target="_blank" rel="noreferrer noopener">
+              <strong>{tool.label}</strong>
             </a>
           ))}
         </nav>
