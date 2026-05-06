@@ -2270,10 +2270,12 @@ body {
 
 .dashboardSlot--performance {
   grid-area: performance;
+  min-width: 0;
 }
 
 .dashboardSlot--market {
   grid-area: market;
+  min-width: 0;
 }
 
 .dashboardSlot--gamma {
@@ -2281,6 +2283,7 @@ body {
   display: grid;
   gap: 10px;
   align-content: start;
+  min-width: 0;
 }
 
 .dashboardSlot--context {
@@ -3826,10 +3829,12 @@ body {
 .performanceReview {
   display: grid;
   gap: 7px;
+  min-width: 0;
   padding-top: 2px;
 }
 
 .currentPositionPanel {
+  container: current-position-panel / inline-size;
   display: grid;
   gap: 7px;
   min-width: 0;
@@ -3841,15 +3846,20 @@ body {
     rgba(5, 10, 11, 0.72);
 }
 
-.currentPositionPanel__header,
 .currentPositionPanel__actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 7px;
+  min-width: 0;
 }
 
 .currentPositionPanel__header {
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 7px;
+  min-width: 0;
 }
 
 .currentPositionPanel__header>div {
@@ -3867,19 +3877,23 @@ body {
 }
 
 .currentPositionPanel__header strong {
-  overflow: hidden;
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 0.66rem;
   font-weight: 620;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.currentPositionPanel__header>button {
+  justify-self: end;
 }
 
 .currentPositionEditor {
   display: grid;
-  grid-template-columns: minmax(74px, 0.85fr) minmax(78px, 0.8fr) minmax(68px, 0.75fr) minmax(76px, 0.85fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
+  min-width: 0;
 }
 
 .currentPositionEditor label {
@@ -3895,6 +3909,7 @@ body {
 .currentPositionEditor input,
 .currentPositionEditor select {
   width: 100%;
+  max-width: 100%;
   min-width: 0;
   height: 28px;
   border: 1px solid rgba(39, 55, 56, 0.88);
@@ -3913,6 +3928,10 @@ body {
   padding: 2px 6px;
 }
 
+.currentPositionEditor__pnl input {
+  min-inline-size: 0;
+}
+
 .currentPositionEditor input:focus,
 .currentPositionEditor select:focus {
   outline: 1px solid rgba(64, 196, 141, 0.66);
@@ -3927,11 +3946,18 @@ body {
   font-family: var(--font-mono);
   font-size: 0.6rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .currentPositionPanel__error {
   grid-column: 1 / -1;
   color: var(--danger);
+}
+
+@container current-position-panel (max-width: 460px) {
+  .currentPositionEditor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .performanceImportActions {
@@ -5131,6 +5157,7 @@ body {
 /* Desktop layout restoration pass */
 @media (min-width: 981px) {
   .dashboardWorkspace {
+    --dashboard-top-row-height: clamp(650px, calc(100vh - 128px), 820px);
     padding-top: 13px;
   }
 
@@ -5190,6 +5217,7 @@ body {
 
   .dashboardGrid {
     grid-template-columns: minmax(300px, 0.88fr) minmax(520px, 1.58fr) minmax(300px, 0.92fr);
+    grid-template-rows: auto var(--dashboard-top-row-height) auto;
     grid-template-areas:
       "capture capture capture"
       "performance market gamma"
@@ -5220,6 +5248,7 @@ body {
   .dashboardSlot--performance,
   .dashboardSlot--market,
   .dashboardSlot--gamma {
+    height: 100%;
     min-height: 0;
   }
 
@@ -5235,6 +5264,7 @@ body {
     flex: 1 1 auto;
     flex-direction: column;
     min-height: 0;
+    max-height: 100%;
   }
 
   .dashboardSlot--performance>.sectionPanel>.sectionPanel__body,
@@ -5246,6 +5276,7 @@ body {
   .dashboardSlot--performance>.sectionPanel>.sectionPanel__body {
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
   }
 
   .dashboardSlot--performance .performanceUpdated {
@@ -5258,7 +5289,12 @@ body {
     gap: 10px;
   }
 
-  .dashboardSlot--gamma>.sectionPanel {
+  .dashboardSlot--gamma>.sectionPanel:first-child {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .dashboardSlot--gamma>.sectionPanel:last-child {
     flex: 0 0 auto;
   }
 

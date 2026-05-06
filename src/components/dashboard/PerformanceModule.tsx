@@ -1141,7 +1141,7 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
                   placeholder="10x"
                 />
               </label>
-              <label>
+              <label className="currentPositionEditor__pnl">
                 <span>PnL %</span>
                 <input
                   inputMode="decimal"
