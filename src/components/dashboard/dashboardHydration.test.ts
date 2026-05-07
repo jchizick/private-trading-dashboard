@@ -315,7 +315,7 @@ describe("DashboardShell hydration", () => {
 
     expect(container.textContent).toContain("5,148.21");
     expect(container.textContent).toContain("45");
-    expect(container.textContent).toContain("Source: Mock Equity History");
+    expect(container.textContent).toContain("Last Updated: Mock/default data");
 
     await act(async () => {
       root = hydrateRoot(container, React.createElement(DashboardShell, { data: dashboardData }));
@@ -354,7 +354,6 @@ describe("DashboardShell hydration", () => {
     expect(text).toContain("7,311");
     expect(text).toContain("7,199");
     expect(text).toContain("7,255.25");
-    expect(text).toContain("Source: Imported CSV");
     expect(text).toContain("Local CSV");
     expect(text).toContain("Trade Ledger: imported");
     expect(text).toContain("Last Updated: Imported May 4, 10:00 AM EDT");

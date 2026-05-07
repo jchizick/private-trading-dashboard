@@ -1242,7 +1242,6 @@ body {
 .marketWatchlist__symbol small,
 .marketWatchlist__status,
 .performanceLedgerState,
-.performanceSourceState>span,
 .performanceUpdated,
 .sentimentSource,
 .contextColumn__header span,
@@ -1257,7 +1256,6 @@ body {
   opacity: 0.54;
 }
 
-.performanceSourceState,
 .externalToolsStrip,
 .performanceImportPanel {
   border-color: rgba(48, 59, 62, 0.68);
@@ -3596,35 +3594,7 @@ body {
   background: var(--border);
 }
 
-.performanceSourceState {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-width: 0;
-  padding: 5px 7px;
-  border: 1px solid rgba(39, 55, 56, 0.68);
-  border-radius: var(--radius);
-  background: rgba(5, 10, 11, 0.54);
-}
-
-.performanceSourceState>span {
-  min-width: 0;
-  overflow: hidden;
-  color: rgba(95, 110, 105, 0.92);
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.performanceSourceState .statusBadge {
-  flex: 0 0 auto;
-}
-
 .performanceLedgerState {
-  margin-top: -3px;
   color: rgba(95, 110, 105, 0.9);
   font-family: var(--font-mono);
   font-size: 0.56rem;
@@ -5157,7 +5127,7 @@ body {
 /* Desktop layout restoration pass */
 @media (min-width: 981px) {
   .dashboardWorkspace {
-    --dashboard-top-row-height: clamp(650px, calc(100vh - 128px), 820px);
+    --dashboard-top-row-height: clamp(628px, calc(100vh - 150px), 780px);
     padding-top: 13px;
   }
 

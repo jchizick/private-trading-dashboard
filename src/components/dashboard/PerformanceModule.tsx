@@ -889,10 +889,6 @@ export function PerformanceModule({ performance }: PerformanceModuleProps) {
         </div>
       }
     >
-      <div className="performanceSourceState" aria-label="Performance Review active data source">
-        <span>{sourceCopy.label}</span>
-        <StatusBadge tone={isUsingImportedData ? "positive" : "neutral"}>{sourceCopy.badge}</StatusBadge>
-      </div>
       <div className="performanceLedgerState" aria-label="Performance Review trade ledger source">
         <span>Trade Ledger: {tradeLedgerSource}</span>
       </div>
