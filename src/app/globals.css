@@ -2536,6 +2536,14 @@ body {
   min-height: 196px;
 }
 
+.gammaUpdated {
+  margin: 0;
+  color: rgba(95, 110, 105, 0.9);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  line-height: 1.35;
+}
+
 .gammaChart__grid path {
   fill: none;
   stroke: rgba(138, 153, 148, 0.12);
@@ -5260,8 +5268,21 @@ body {
   }
 
   .dashboardSlot--gamma>.sectionPanel:first-child {
+    display: flex;
     flex: 1 1 auto;
+    flex-direction: column;
     min-height: 0;
+  }
+
+  .dashboardSlot--gamma>.sectionPanel:first-child>.sectionPanel__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .sectionPanel--gammaContext .gammaUpdated {
+    margin-top: auto;
   }
 
   .dashboardSlot--gamma>.sectionPanel:last-child {

@@ -305,6 +305,7 @@ export function GammaContextModule({ gamma }: GammaContextModuleProps) {
 
   return (
     <SectionPanel
+      className="sectionPanel--gammaContext"
       title="Gamma Context"
       description="Gamma distribution and peak strike context."
       action={
@@ -330,7 +331,7 @@ export function GammaContextModule({ gamma }: GammaContextModuleProps) {
     >
       <PlaceholderFrame
         label={gamma.imageSourceLabel}
-        meta={`Last checked: ${formatLastChecked(lastCheckedAt)}`}
+        hideLabel
         variant="gamma"
       >
         {savedGamma.distributionImageUrl ? (
@@ -505,6 +506,9 @@ export function GammaContextModule({ gamma }: GammaContextModuleProps) {
         </div>
       )}
 
+      <p className="gammaUpdated">
+        Last checked: {formatLastChecked(lastCheckedAt)}
+      </p>
     </SectionPanel>
   );
 }
