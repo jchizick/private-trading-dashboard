@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Market Command Architecture Flow</title>
+  <title>Market Command — Architecture & Operator Flows</title>
   <style>
     :root {
       --bg: #070b0c;
@@ -19,6 +19,7 @@
       --accent: #40c48d;
       --accent-strong: #74e0ae;
       --accent-soft: rgba(64, 196, 141, 0.12);
+      --accent-line: rgba(116, 224, 174, 0.7);
       --negative: #e06c75;
       --warning: #d6a75a;
       --warning-soft: rgba(214, 167, 90, 0.12);
@@ -49,7 +50,7 @@
         linear-gradient(rgba(64, 196, 141, 0.03) 1px, transparent 1px),
         radial-gradient(circle at 15% 0%, rgba(64, 196, 141, 0.08), transparent 28rem),
         var(--bg);
-      background-size: 40px 40px, 40px 40px, auto, auto;
+      background-size: 36px 36px, 36px 36px, auto, auto;
       font-family: var(--font-sans);
     }
 
@@ -60,15 +61,15 @@
     .page {
       width: min(1920px, 100%);
       margin: 0 auto;
-      padding: 22px 24px 28px;
+      padding: 20px 22px 26px;
     }
 
     .topbar {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 24px;
-      padding-bottom: 16px;
+      gap: 22px;
+      padding-bottom: 14px;
       border-bottom: 1px solid rgba(42, 63, 59, 0.62);
     }
 
@@ -96,7 +97,8 @@
     h1 {
       margin: 0;
       font-family: var(--font-mono);
-      font-size: clamp(1.4rem, 2.5vw, 2.4rem);
+      max-width: 980px;
+      font-size: clamp(1.45rem, 2.05vw, 2.32rem);
       line-height: 1.05;
       letter-spacing: 0;
     }
@@ -112,7 +114,7 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(92px, 1fr));
       gap: 1px;
-      min-width: min(650px, 58vw);
+      min-width: min(620px, 48vw);
       overflow: hidden;
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -147,17 +149,17 @@
 
     .overview {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      gap: 18px;
-      margin-top: 18px;
+      grid-template-columns: minmax(0, 1fr) 372px;
+      gap: 16px;
+      margin-top: 16px;
       align-items: start;
     }
 
     .panel {
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      background: rgba(10, 16, 17, 0.86);
-      box-shadow: 0 18px 54px rgba(0, 0, 0, 0.26);
+      background: rgba(10, 16, 17, 0.9);
+      box-shadow: 0 18px 54px rgba(0, 0, 0, 0.3);
     }
 
     .mapPanel {
@@ -171,21 +173,21 @@
       top: 0;
       z-index: 12;
       display: flex;
-      gap: 8px;
-      padding: 12px;
+      gap: 7px;
+      padding: 10px;
       overflow-x: auto;
       border-bottom: 1px solid var(--border);
-      background: rgba(7, 11, 12, 0.94);
+      background: rgba(7, 11, 12, 0.96);
       backdrop-filter: blur(10px);
     }
 
     .flowButton {
       flex: 0 0 auto;
-      min-height: 30px;
-      padding: 7px 10px;
-      border: 1px solid var(--border);
+      min-height: 32px;
+      padding: 7px 11px;
+      border: 1px solid rgba(42, 63, 59, 0.82);
       border-radius: 4px;
-      background: rgba(255, 255, 255, 0.025);
+      background: rgba(255, 255, 255, 0.032);
       color: var(--text-muted);
       font-family: var(--font-mono);
       font-size: 0.68rem;
@@ -197,29 +199,30 @@
     .flowButton:focus-visible,
     .flowButton.is-active {
       color: var(--accent-strong);
-      border-color: rgba(64, 196, 141, 0.5);
-      background: var(--accent-soft);
+      border-color: rgba(116, 224, 174, 0.74);
+      background: rgba(64, 196, 141, 0.14);
+      box-shadow: inset 0 -2px 0 rgba(116, 224, 174, 0.32);
       outline: none;
     }
 
     .mapCanvas {
       position: relative;
-      min-width: 1480px;
-      padding: 16px;
+      min-width: 1420px;
+      padding: 14px;
     }
 
     .lanes {
       position: relative;
       z-index: 2;
       display: grid;
-      grid-template-columns: repeat(6, minmax(208px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(6, minmax(190px, 1fr));
+      gap: 10px;
       align-items: start;
     }
 
     .lane {
       min-height: 700px;
-      border: 1px solid rgba(42, 63, 59, 0.62);
+      border: 1px solid rgba(42, 63, 59, 0.72);
       border-radius: var(--radius);
       background: linear-gradient(180deg, rgba(17, 27, 27, 0.74), rgba(8, 16, 16, 0.46));
     }
@@ -228,7 +231,7 @@
       position: sticky;
       top: 55px;
       z-index: 4;
-      padding: 11px 12px;
+      padding: 10px 11px;
       border-bottom: 1px solid rgba(42, 63, 59, 0.55);
       background: rgba(8, 13, 15, 0.92);
       backdrop-filter: blur(8px);
@@ -239,28 +242,29 @@
       margin-bottom: 5px;
       color: var(--text);
       font-family: var(--font-mono);
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 700;
     }
 
     .lane__body {
       display: grid;
-      gap: 10px;
-      padding: 12px;
+      gap: 9px;
+      padding: 10px;
     }
 
     .node {
       position: relative;
       display: grid;
-      gap: 8px;
-      min-height: 108px;
-      padding: 11px;
-      border: 1px solid rgba(42, 63, 59, 0.72);
+      gap: 7px;
+      min-height: 106px;
+      padding: 10px;
+      border: 1px solid rgba(56, 76, 73, 0.86);
       border-radius: var(--radius);
-      background: rgba(7, 11, 12, 0.92);
+      background: linear-gradient(180deg, rgba(13, 20, 21, 0.98), rgba(7, 11, 12, 0.96));
       color: inherit;
       text-align: left;
       cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 10px 24px rgba(0, 0, 0, 0.16);
     }
 
     .node:focus-visible,
@@ -271,11 +275,17 @@
     }
 
     .node.is-selected {
-      box-shadow: inset 0 0 0 1px rgba(116, 224, 174, 0.26), 0 0 0 1px rgba(116, 224, 174, 0.16);
+      background: linear-gradient(180deg, rgba(17, 33, 30, 0.98), rgba(8, 15, 15, 0.98));
+      box-shadow: inset 0 0 0 1px rgba(116, 224, 174, 0.34), 0 0 0 1px rgba(116, 224, 174, 0.22), 0 16px 34px rgba(0, 0, 0, 0.28);
     }
 
     .node.is-dim {
-      opacity: 0.28;
+      opacity: 0.22;
+    }
+
+    .node.is-in-flow:not(.is-selected) {
+      border-color: rgba(84, 131, 114, 0.98);
+      box-shadow: inset 2px 0 0 rgba(64, 196, 141, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 12px 26px rgba(0, 0, 0, 0.2);
     }
 
     .node__top {
@@ -288,7 +298,7 @@
     .node__title {
       color: var(--text);
       font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.76rem;
       font-weight: 700;
       line-height: 1.25;
     }
@@ -332,8 +342,9 @@
     .node__desc {
       margin: 0;
       color: var(--text-muted);
-      font-size: 0.74rem;
-      line-height: 1.45;
+      color: rgba(177, 188, 184, 0.9);
+      font-size: 0.7rem;
+      line-height: 1.42;
     }
 
     .node__files {
@@ -348,7 +359,7 @@
       padding: 3px 6px;
       border: 1px solid rgba(42, 63, 59, 0.7);
       border-radius: 4px;
-      color: var(--text-faint);
+      color: rgba(143, 160, 154, 0.78);
       font-family: var(--font-mono);
       font-size: 0.59rem;
       overflow: hidden;
@@ -365,13 +376,13 @@
 
     .edgePath {
       fill: none;
-      stroke: rgba(116, 224, 174, 0.26);
-      stroke-width: 1.2;
+      stroke: rgba(116, 224, 174, 0.3);
+      stroke-width: 1.25;
     }
 
     .edgePath.is-highlight {
-      stroke: rgba(116, 224, 174, 0.82);
-      stroke-width: 1.9;
+      stroke: rgba(116, 224, 174, 0.92);
+      stroke-width: 2.2;
     }
 
     .edgePath.is-dim {
@@ -381,7 +392,7 @@
     .edgeLabel {
       fill: rgba(177, 188, 184, 0.74);
       font-family: var(--font-mono);
-      font-size: 9px;
+      font-size: 10px;
     }
 
     .edgeLabel.is-dim {
@@ -393,7 +404,7 @@
       top: 18px;
       display: grid;
       gap: 14px;
-      padding: 16px;
+      padding: 15px;
       max-height: calc(100vh - 36px);
       overflow: auto;
     }
@@ -492,13 +503,39 @@
     .loadNote {
       display: none;
       margin-top: 8px;
-      color: var(--warning);
-      font-size: 0.74rem;
+      color: rgba(214, 167, 90, 0.54);
+      font-size: 0.68rem;
       line-height: 1.45;
     }
 
     .loadNote.is-visible {
-      display: block;
+      display: none;
+    }
+
+    @media (max-width: 1560px) {
+      .overview {
+        grid-template-columns: 1fr;
+      }
+
+      .mapCanvas {
+        min-width: 0;
+      }
+
+      .lanes {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+
+      .detailPanel {
+        position: static;
+        max-height: none;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+      }
+
+      .detailPanel > div:first-child,
+      .detailPanel > p {
+        grid-column: 1 / -1;
+      }
     }
 
     @media (max-width: 1180px) {
@@ -535,7 +572,7 @@
       }
 
       .mapCanvas {
-        min-width: 1200px;
+        min-width: 1160px;
       }
     }
   </style>
@@ -546,7 +583,7 @@
       <div class="identity">
         <span class="brand">[JC]</span>
         <div>
-          <h1 id="projectTitle">Market Command Architecture</h1>
+          <h1 id="projectTitle">Market Command — Architecture &amp; Operator Flows</h1>
           <span id="projectDescription" class="subtitle">System map for the private trading dashboard.</span>
           <span id="loadNote" class="loadNote">Using embedded fallback data. To load the full JSON graph, serve the docs directory over HTTP so architecture-flow.json can be fetched.</span>
         </div>
@@ -704,8 +741,8 @@
 
     function renderAll() {
       const data = state.data;
-      els.title.textContent = data.project || "Market Command Architecture";
-      els.description.textContent = data.description || "";
+      els.title.textContent = "Market Command — Architecture & Operator Flows";
+      els.description.textContent = "System map for main data paths, operator actions, local persistence, API boundaries, and planned migration routes.";
       els.loadNote.classList.toggle("is-visible", state.usedFallback);
       els.nodeCount.textContent = String((data.nodes || []).length);
       els.edgeCount.textContent = String((data.edges || []).length);
@@ -789,6 +826,7 @@
         const isInFlow = !flow || nodeSet.has(nodeEl.dataset.nodeId);
         const isSelected = nodeEl.dataset.nodeId === state.selectedNodeId;
         nodeEl.classList.toggle("is-dim", !isInFlow);
+        nodeEl.classList.toggle("is-in-flow", isInFlow);
         nodeEl.classList.toggle("is-selected", isSelected);
       });
     }
