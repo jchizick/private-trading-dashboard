@@ -9,6 +9,8 @@ import { getEconomicCalendarEventsForDate } from "@/lib/economicCalendar";
 import { cloneSynthesisNotes } from "@/lib/dailySnapshotFactory";
 import type {
   ChecklistStatus,
+  MarketNewsCategory,
+  MarketNewsItem,
   SynthesisNotes,
   TradingBias,
   TradingBiasOption
@@ -19,26 +21,7 @@ interface TradingContextModuleProps {
   context: TradingContext;
 }
 
-const marketNews = [
-  {
-    headline: "Index futures hold bid as megacap strength offsets rate pressure.",
-    source: "Market Desk",
-    timestamp: "08:55 ET",
-    tag: "Equities"
-  },
-  {
-    headline: "Dollar firms into US data window; metals fade early-session impulse.",
-    source: "Macro Wire",
-    timestamp: "09:10 ET",
-    tag: "FX"
-  },
-  {
-    headline: "Crypto majors remain range-bound ahead of liquidity sweep zones.",
-    source: "Flow Brief",
-    timestamp: "09:18 ET",
-    tag: "Crypto"
-  }
-];
+const marketNewsCategories: MarketNewsCategory[] = ["equities", "fx", "crypto", "macro", "rates", "energy"];
 
 const tradingBiasOptions: TradingBiasOption[] = [
   "Bullish",
@@ -51,6 +34,24 @@ const tradingBiasOptions: TradingBiasOption[] = [
 ];
 
 const checklistStatusCycle: ChecklistStatus[] = ["not checked", "watch", "checked"];
+
+function cloneMarketNewsItems(items: MarketNewsItem[]): MarketNewsItem[] {
+  return items.map((item) => ({ ...item }));
+}
+
+function createDraftMarketNewsItem(date: string): MarketNewsItem {
+  return {
+    id: `market-news-draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    date,
+    headline: "",
+    source: "",
+    category: "macro"
+  };
+}
+
+function getMarketNewsCategoryLabel(category: MarketNewsCategory) {
+  return category === "fx" ? "FX" : category.toUpperCase();
+}
 
 function getToolTone(status: ChecklistStatus) {
   if (status === "checked") {
@@ -86,16 +87,23 @@ export function TradingContextModule({ context: _context }: TradingContextModule
   const [draftSynthesis, setDraftSynthesis] = useState<SynthesisNotes>(() =>
     cloneSynthesisNotes(dailySnapshot.synthesis)
   );
+  const [draftMarketNews, setDraftMarketNews] = useState<MarketNewsItem[]>(() =>
+    cloneMarketNewsItems(dailySnapshot.marketNews)
+  );
   const [isEditingSynthesis, setIsEditingSynthesis] = useState(false);
+  const [isEditingMarketNews, setIsEditingMarketNews] = useState(false);
   const selectedEconomicEvents = useMemo(
     () => getEconomicCalendarEventsForDate(economicCalendar2026, activeDate),
     [activeDate]
   );
+  const activeMarketNews = dailySnapshot.marketNews.filter((item) => item.date === activeDate);
 
   useEffect(() => {
     setDraftSynthesis(cloneSynthesisNotes(dailySnapshot.synthesis));
+    setDraftMarketNews(cloneMarketNewsItems(dailySnapshot.marketNews));
     setIsEditingSynthesis(false);
-  }, [activeDate, dailySnapshot.synthesis]);
+    setIsEditingMarketNews(false);
+  }, [activeDate, dailySnapshot.marketNews, dailySnapshot.synthesis]);
 
   function beginSynthesisEdit() {
     setDraftSynthesis(cloneSynthesisNotes(dailySnapshot.synthesis));
@@ -130,6 +138,68 @@ export function TradingContextModule({ context: _context }: TradingContextModule
       ...current,
       [field]: value
     }));
+  }
+
+  function beginMarketNewsEdit() {
+    setDraftMarketNews(cloneMarketNewsItems(activeMarketNews));
+    setIsEditingMarketNews(true);
+  }
+
+  function cancelMarketNewsEdit() {
+    setDraftMarketNews(cloneMarketNewsItems(activeMarketNews));
+    setIsEditingMarketNews(false);
+  }
+
+  function addDraftMarketNewsItem() {
+    setDraftMarketNews((current) => [...current, createDraftMarketNewsItem(activeDate)]);
+  }
+
+  function updateDraftMarketNewsItem<Field extends keyof MarketNewsItem>(
+    itemId: string,
+    field: Field,
+    value: MarketNewsItem[Field]
+  ) {
+    setDraftMarketNews((current) =>
+      current.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              [field]: value
+            }
+          : item
+      )
+    );
+  }
+
+  function deleteDraftMarketNewsItem(itemId: string) {
+    setDraftMarketNews((current) => current.filter((item) => item.id !== itemId));
+  }
+
+  function saveMarketNewsEdit() {
+    const now = new Date().toISOString();
+    const curatedItems = draftMarketNews
+      .map((item) => ({
+        ...item,
+        date: activeDate,
+        headline: item.headline.trim(),
+        source: item.source.trim() || "Manual",
+        url: item.url?.trim() || undefined,
+        timestamp: item.timestamp?.trim() || undefined
+      }))
+      .filter((item) => item.headline.length > 0);
+
+    updateSnapshot((snapshot) => ({
+      ...snapshot,
+      status: "saved" as const,
+      updatedAt: now,
+      // Market News remains manual snapshot state in this phase; future watched X/news ingestion can append here.
+      marketNews: [
+        ...snapshot.marketNews.filter((item) => item.date !== activeDate),
+        ...curatedItems
+      ]
+    }));
+
+    setIsEditingMarketNews(false);
   }
 
   function cycleChecklistStatus(itemId: string) {
@@ -212,20 +282,108 @@ export function TradingContextModule({ context: _context }: TradingContextModule
       <div className="tradingContextGrid">
         <section className="contextColumn contextColumn--news" aria-label="Market news">
           <header className="contextColumn__header">
-            <h3>Market News</h3>
-            <span>External read</span>
+            <div>
+              <h3>Market News</h3>
+              <span>{isEditingMarketNews ? "Editing curated read" : "Curated daily read"}</span>
+            </div>
+            <div className="marketNewsActions">
+              {isEditingMarketNews ? (
+                <>
+                  <button className="terminalButton terminalButton--primary" type="button" onClick={saveMarketNewsEdit}>
+                    Save
+                  </button>
+                  <button className="terminalButton" type="button" onClick={cancelMarketNewsEdit}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button className="terminalButton" type="button" onClick={beginMarketNewsEdit}>
+                  Edit
+                </button>
+              )}
+            </div>
           </header>
-          <div className="newsFeed">
-            {marketNews.map((item) => (
-              <article className="newsFeed__item" key={item.headline}>
-                <div>
-                  <strong>{item.headline}</strong>
-                  <span>{item.source} / {item.timestamp}</span>
+          {isEditingMarketNews ? (
+            <div className="marketNewsEditor">
+              {draftMarketNews.map((item) => (
+                <div className="marketNewsEditor__item" key={item.id}>
+                  <label className="synthesisField">
+                    <span>Headline</span>
+                    <input
+                      value={item.headline}
+                      onChange={(event) => updateDraftMarketNewsItem(item.id, "headline", event.target.value)}
+                    />
+                  </label>
+                  <div className="marketNewsEditor__grid">
+                    <label className="synthesisField">
+                      <span>Category</span>
+                      <select
+                        value={item.category}
+                        onChange={(event) =>
+                          updateDraftMarketNewsItem(item.id, "category", event.target.value as MarketNewsCategory)
+                        }
+                      >
+                        {marketNewsCategories.map((category) => (
+                          <option value={category} key={category}>
+                            {getMarketNewsCategoryLabel(category)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="synthesisField">
+                      <span>Source</span>
+                      <input
+                        value={item.source}
+                        onChange={(event) => updateDraftMarketNewsItem(item.id, "source", event.target.value)}
+                      />
+                    </label>
+                    <label className="synthesisField">
+                      <span>URL</span>
+                      <input
+                        value={item.url ?? ""}
+                        onChange={(event) => updateDraftMarketNewsItem(item.id, "url", event.target.value)}
+                      />
+                    </label>
+                    <label className="synthesisField">
+                      <span>Timestamp</span>
+                      <input
+                        value={item.timestamp ?? ""}
+                        onChange={(event) => updateDraftMarketNewsItem(item.id, "timestamp", event.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <button className="terminalButton" type="button" onClick={() => deleteDraftMarketNewsItem(item.id)}>
+                    Delete
+                  </button>
                 </div>
-                <StatusBadge tone="neutral">{item.tag}</StatusBadge>
-              </article>
-            ))}
-          </div>
+              ))}
+              <button className="terminalButton" type="button" onClick={addDraftMarketNewsItem}>
+                Add headline
+              </button>
+            </div>
+          ) : (
+            <div className="newsFeed">
+              {activeMarketNews.length > 0 ? (
+                activeMarketNews.map((item) => (
+                  <article className="newsFeed__item" key={item.id}>
+                    <div>
+                      {item.url ? (
+                        <a href={item.url} target="_blank" rel="noreferrer">
+                          {item.headline}
+                        </a>
+                      ) : (
+                        <strong>{item.headline}</strong>
+                      )}
+                      <span>{item.timestamp ? `${item.source} / ${item.timestamp}` : item.source}</span>
+                    </div>
+                    <StatusBadge tone="neutral">{getMarketNewsCategoryLabel(item.category)}</StatusBadge>
+                  </article>
+                ))
+              ) : (
+                <p className="newsFeed__empty">NO CURATED MARKET NEWS YET</p>
+              )}
+            </div>
+          )}
         </section>
 
         <section className="contextColumn contextColumn--calendar" aria-label="Economic calendar">

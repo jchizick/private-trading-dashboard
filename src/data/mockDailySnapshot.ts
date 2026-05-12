@@ -130,6 +130,7 @@ export const mockDailyDashboardSnapshot = {
     updatedAt: "2026-05-01T09:00:00-04:00",
     capturedAt: "2026-05-01T09:00:00-04:00"
   },
+  marketNews: [],
   synthesis: {
     marketBias: "Long Selective",
     primaryBias: "long selective",

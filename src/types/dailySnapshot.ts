@@ -25,6 +25,7 @@ export type MarketQuoteSourceState = "live" | "cached" | "partial" | "mock";
 export type DailySnapshotSource = "manual" | "mock" | "market_data";
 export type FearGreedLabel = "Extreme Fear" | "Fear" | "Neutral" | "Greed" | "Extreme Greed" | "Unknown";
 export type CurrentPositionSide = "Long" | "Short" | "Flat";
+export type MarketNewsCategory = "equities" | "fx" | "crypto" | "macro" | "rates" | "energy";
 
 export interface CapturedMarketQuoteRow {
   displaySymbol: string;
@@ -55,11 +56,23 @@ export interface DailyDashboardSnapshot {
   spx: SpxSnapshot;
   gamma: GammaSnapshot;
   fearGreed: FearGreedSnapshot;
+  marketNews: MarketNewsItem[];
   synthesis: SynthesisNotes;
   checklist: TradingChecklistItem[];
   currentPosition: CurrentPositionSnapshot | null;
   performanceReview: PerformanceReviewSnapshot;
   externalToolLinks: ExternalToolLink[];
+}
+
+// Manual curated items today; future X/news ingestion should normalize watched-source output into this shape.
+export interface MarketNewsItem {
+  id: string;
+  date: ISODate;
+  headline: string;
+  source: string;
+  category: MarketNewsCategory;
+  url?: string;
+  timestamp?: string;
 }
 
 export interface SpxSnapshot {

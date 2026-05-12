@@ -3097,6 +3097,12 @@ body {
   border-bottom: 1px solid rgba(39, 55, 56, 0.82);
 }
 
+.contextColumn__header>div:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
 .contextColumn__header h3 {
   margin: 0;
   color: var(--text);
@@ -3194,6 +3200,7 @@ body {
   background: rgba(143, 160, 154, 0.075);
 }
 
+.newsFeed__empty,
 .calendarFeed__empty {
   margin: 0;
   padding: 9px;
@@ -3203,6 +3210,20 @@ body {
   font-weight: 650;
   letter-spacing: 0;
   text-transform: uppercase;
+}
+
+.newsFeed__item a {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 620;
+  line-height: 1.32;
+  text-decoration: none;
+}
+
+.newsFeed__item a:hover,
+.newsFeed__item a:focus-visible {
+  color: var(--accent-strong);
 }
 
 .synthesisNotes {
@@ -3456,6 +3477,7 @@ body {
   text-transform: uppercase;
 }
 
+.synthesisField input,
 .synthesisField textarea,
 .synthesisField select {
   width: 100%;
@@ -3467,6 +3489,11 @@ body {
   font-family: var(--font-mono);
   font-size: 0.64rem;
   line-height: 1.36;
+}
+
+.synthesisField input {
+  height: 25px;
+  padding: 2px 6px;
 }
 
 .synthesisField textarea {
@@ -3482,11 +3509,38 @@ body {
   text-transform: uppercase;
 }
 
+.synthesisField input:focus,
 .synthesisField textarea:focus,
 .synthesisField select:focus {
   outline: 1px solid rgba(64, 196, 141, 0.66);
   outline-offset: 0;
   border-color: rgba(64, 196, 141, 0.5);
+}
+
+.marketNewsActions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.marketNewsEditor {
+  display: grid;
+  gap: 7px;
+  padding: 8px;
+}
+
+.marketNewsEditor__item {
+  display: grid;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid rgba(39, 55, 56, 0.72);
+  background: rgba(5, 10, 11, 0.68);
+}
+
+.marketNewsEditor__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .tradingChecklist__row {

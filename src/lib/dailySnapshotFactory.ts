@@ -7,6 +7,8 @@ import type {
   DailyDashboardSnapshot,
   FearGreedLabel,
   FearGreedSnapshot,
+  MarketNewsCategory,
+  MarketNewsItem,
   MarketQuoteSourceState,
   SpxSnapshot,
   SynthesisNotes
@@ -175,6 +177,58 @@ function normalizeFearGreedSnapshot(
   };
 }
 
+function normalizeMarketNewsCategory(value: unknown): MarketNewsCategory {
+  if (
+    value === "equities" ||
+    value === "fx" ||
+    value === "crypto" ||
+    value === "macro" ||
+    value === "rates" ||
+    value === "energy"
+  ) {
+    return value;
+  }
+
+  return "macro";
+}
+
+function normalizeMarketNewsItem(value: unknown, fallbackDate: string): MarketNewsItem | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const candidate = value as Partial<MarketNewsItem>;
+  const headline = normalizeString(candidate.headline)?.trim();
+  const source = normalizeString(candidate.source)?.trim();
+
+  if (!headline || !source) {
+    return null;
+  }
+
+  const url = normalizeString(candidate.url)?.trim();
+  const timestamp = normalizeString(candidate.timestamp)?.trim();
+
+  return {
+    id: normalizeString(candidate.id) ?? `market-news-${fallbackDate}-${headline}`,
+    date: normalizeString(candidate.date) ?? fallbackDate,
+    headline,
+    source,
+    category: normalizeMarketNewsCategory(candidate.category),
+    url: url || undefined,
+    timestamp: timestamp || undefined
+  };
+}
+
+function normalizeMarketNewsItems(value: unknown, fallbackDate: string): MarketNewsItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => normalizeMarketNewsItem(item, fallbackDate))
+    .filter((item): item is MarketNewsItem => item !== null);
+}
+
 function normalizeCurrentPosition(value: unknown, updatedAt: string): CurrentPositionSnapshot | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -225,6 +279,7 @@ export function normalizeDailyDashboardSnapshot(snapshot: DailyDashboardSnapshot
     spx: normalizeSpxSnapshot(snapshot.spx, snapshot.updatedAt),
     gamma: normalizeGammaSnapshot(snapshot.gamma, snapshot.tradingDate, snapshot.updatedAt),
     fearGreed: normalizeFearGreedSnapshot(snapshot.fearGreed, snapshot.updatedAt),
+    marketNews: normalizeMarketNewsItems(snapshot.marketNews, snapshot.tradingDate),
     synthesis: normalizeSynthesisNotes(snapshot.synthesis, snapshot.updatedAt),
     currentPosition: normalizeCurrentPosition(snapshot.currentPosition, snapshot.updatedAt)
   };
@@ -254,6 +309,7 @@ export function createDailySnapshotForDate(tradingDate: string): DailyDashboardS
       updatedAt: now
     })),
     gamma: createDefaultGammaSnapshotForDate(tradingDate, now),
+    marketNews: [],
     currentPosition: null,
     performanceReview: {
       ...snapshot.performanceReview,
