@@ -1,0 +1,1406 @@
+{
+  "project": "Market Command Trading Dashboard",
+  "description": "Single-page architecture and flow reference for the private Next.js trading dashboard. The current MVP is mock-first, client-hydrated, localStorage-backed, and uses server-side API route proxies for provider data that requires secrets.",
+  "generatedAt": "2026-05-12",
+  "statusLegend": {
+    "implemented": "Present in source and wired into the dashboard.",
+    "manual": "Implemented as a user-driven workflow rather than automated ingestion.",
+    "cache": "Implemented as non-durable browser or process cache.",
+    "future": "Referenced in docs, comments, or roadmap but not implemented.",
+    "mock": "Rendered from mock/default data before hydration or when providers are unavailable."
+  },
+  "groups": [
+    {
+      "id": "external",
+      "title": "External Sources And Tools",
+      "lane": 1,
+      "description": "Provider APIs, local files, curated operator inputs, and external trading platforms."
+    },
+    {
+      "id": "api",
+      "title": "Next.js API And Auth",
+      "lane": 2,
+      "description": "App Router route handlers, proxy auth gate, and server-only API-key boundary."
+    },
+    {
+      "id": "normalization",
+      "title": "Normalization And Domain Logic",
+      "lane": 3,
+      "description": "Typed parsing, validation, normalization, and calculation helpers."
+    },
+    {
+      "id": "state",
+      "title": "Client State And Persistence",
+      "lane": 4,
+      "description": "Daily snapshot provider, localStorage keys, browser stale caches, and import stores."
+    },
+    {
+      "id": "modules",
+      "title": "Dashboard Modules",
+      "lane": 5,
+      "description": "Visible dashboard surfaces composed by DashboardShell."
+    },
+    {
+      "id": "future",
+      "title": "Future / Planned",
+      "lane": 6,
+      "description": "Referenced migration or automation paths that are not implemented in the MVP."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "app-router-shell",
+      "title": "App Router Page",
+      "group": "modules",
+      "kind": "entry",
+      "status": "implemented",
+      "description": "The root page imports mock dashboard data and renders DashboardShell.",
+      "files": [
+        "src/app/page.tsx",
+        "src/app/layout.tsx",
+        "src/data/mockDashboardData.ts"
+      ]
+    },
+    {
+      "id": "dashboard-shell",
+      "title": "DashboardShell",
+      "group": "modules",
+      "kind": "composition",
+      "status": "implemented",
+      "description": "Composes the top bar, market snapshot capture control, Performance Review, Market Overview, Gamma/Fear & Greed, and Trading Context under DailySnapshotProvider.",
+      "files": [
+        "src/components/dashboard/DashboardShell.tsx"
+      ]
+    },
+    {
+      "id": "daily-snapshot-provider",
+      "title": "DailySnapshotProvider",
+      "group": "state",
+      "kind": "state-provider",
+      "status": "implemented",
+      "description": "Owns active trading date, active DailyDashboardSnapshot, saved date discovery, date switching, snapshot saves, and transient market/sentiment capture candidates.",
+      "files": [
+        "src/components/dashboard/DailySnapshotProvider.tsx",
+        "src/types/dailySnapshot.ts"
+      ],
+      "storage": [
+        "market-command:daily-snapshot:${date}"
+      ]
+    },
+    {
+      "id": "daily-snapshot-storage",
+      "title": "Daily Snapshot localStorage",
+      "group": "state",
+      "kind": "persistence",
+      "status": "implemented",
+      "description": "Date-keyed browser persistence for DailyDashboardSnapshot with safe load, normalize, save, and saved-date listing helpers.",
+      "files": [
+        "src/lib/dailySnapshotStorage.ts",
+        "src/lib/dailySnapshotFactory.ts"
+      ],
+      "storage": [
+        "market-command:daily-snapshot:${date}"
+      ]
+    },
+    {
+      "id": "market-snapshot-capture",
+      "title": "Capture Market Snapshot",
+      "group": "state",
+      "kind": "explicit-save-action",
+      "status": "implemented",
+      "description": "User action that persists current Market Overview quote context and Fear & Greed read into the active daily snapshot. Hydration alone does not write daily history.",
+      "files": [
+        "src/components/dashboard/MarketSnapshotCaptureControl.tsx",
+        "src/lib/dailyMarketSnapshotCapture.ts"
+      ]
+    },
+    {
+      "id": "performance-module",
+      "title": "Performance Review",
+      "group": "modules",
+      "kind": "dashboard-module",
+      "status": "implemented",
+      "description": "Displays derived account performance, local CSV import previews, trade-ledger metrics, and manual current-position daily state.",
+      "files": [
+        "src/components/dashboard/PerformanceModule.tsx"
+      ]
+    },
+    {
+      "id": "market-module",
+      "title": "Market Overview",
+      "group": "modules",
+      "kind": "dashboard-module",
+      "status": "implemented",
+      "description": "Mock-first SPX/watchlist surface that hydrates quotes through /api/market-quotes and embeds the live candle chart component.",
+      "files": [
+        "src/components/dashboard/MarketSituationModule.tsx"
+      ]
+    },
+    {
+      "id": "candles-chart",
+      "title": "SPX Candle Chart",
+      "group": "modules",
+      "kind": "chart",
+      "status": "implemented",
+      "description": "Client-only lightweight-charts candlestick and volume chart with Index/Futures source toggle. It does not write candle data into daily snapshots.",
+      "files": [
+        "src/components/dashboard/MarketOverviewCandlesChart.tsx"
+      ]
+    },
+    {
+      "id": "gamma-module",
+      "title": "Gamma Context",
+      "group": "modules",
+      "kind": "dashboard-module",
+      "status": "implemented",
+      "description": "Manual daily gamma levels and local image-reference workflow stored inside DailyDashboardSnapshot.gamma.",
+      "files": [
+        "src/components/dashboard/GammaContextModule.tsx",
+        "src/lib/gammaSnapshot.ts",
+        "src/lib/gammaImageUpload.ts"
+      ]
+    },
+    {
+      "id": "fear-greed-module",
+      "title": "Fear & Greed",
+      "group": "modules",
+      "kind": "dashboard-module",
+      "status": "implemented",
+      "description": "Compact CoinMarketCap sentiment instrument. Hydrates through the internal route, writes browser stale cache, and publishes a transient capture candidate.",
+      "files": [
+        "src/components/dashboard/FearGreedModule.tsx"
+      ]
+    },
+    {
+      "id": "trading-context-module",
+      "title": "Trading Context",
+      "group": "modules",
+      "kind": "dashboard-module",
+      "status": "implemented",
+      "description": "Four-column workflow for manual Market News, Economic Calendar, Synthesis Notes, and Trading Checklist. Uses the shared daily snapshot provider.",
+      "files": [
+        "src/components/dashboard/TradingContextModule.tsx"
+      ]
+    },
+    {
+      "id": "topbar-telemetry",
+      "title": "TopBarTelemetry",
+      "group": "modules",
+      "kind": "dashboard-module",
+      "status": "implemented",
+      "description": "Header telemetry derived from the mock/live market view model.",
+      "files": [
+        "src/components/dashboard/TopBarTelemetry.tsx"
+      ]
+    },
+    {
+      "id": "api-market-quotes",
+      "title": "GET /api/market-quotes",
+      "group": "api",
+      "kind": "api-route",
+      "status": "implemented",
+      "description": "Server-side quote proxy for FMP and Twelve Data. Keeps provider keys server-only, caches in process memory, and returns controlled partial/unavailable states.",
+      "files": [
+        "src/app/api/market-quotes/route.ts"
+      ],
+      "env": [
+        "FMP_API_KEY",
+        "TWELVE_DATA_API_KEY"
+      ]
+    },
+    {
+      "id": "api-market-candles",
+      "title": "GET /api/market-candles",
+      "group": "api",
+      "kind": "api-route",
+      "status": "implemented",
+      "description": "Server-side Yahoo Finance chart proxy for SPX500 Index and E-Mini futures candle reads. Optional SPY proxy is gated by MARKET_CANDLES_ENABLE_SPY_PROXY.",
+      "files": [
+        "src/app/api/market-candles/route.ts"
+      ],
+      "env": [
+        "MARKET_CANDLES_ENABLE_SPY_PROXY"
+      ]
+    },
+    {
+      "id": "api-fear-greed",
+      "title": "GET /api/fear-greed",
+      "group": "api",
+      "kind": "api-route",
+      "status": "implemented",
+      "description": "Server-side CoinMarketCap Fear & Greed proxy with in-memory cache and stale fallback.",
+      "files": [
+        "src/app/api/fear-greed/route.ts"
+      ],
+      "env": [
+        "CMC_API_KEY"
+      ]
+    },
+    {
+      "id": "api-login",
+      "title": "POST /api/login",
+      "group": "api",
+      "kind": "api-route",
+      "status": "implemented",
+      "description": "Server-side password submission route. Creates an httpOnly signed auth cookie when DASHBOARD_PASSWORD matches.",
+      "files": [
+        "src/app/api/login/route.ts",
+        "src/lib/dashboardAuth.ts"
+      ],
+      "env": [
+        "DASHBOARD_PASSWORD"
+      ]
+    },
+    {
+      "id": "auth-proxy",
+      "title": "Auth Proxy Gate",
+      "group": "api",
+      "kind": "middleware",
+      "status": "implemented",
+      "description": "Protects dashboard routes by validating the signed httpOnly cookie and redirecting anonymous users to /login.",
+      "files": [
+        "src/proxy.ts",
+        "src/lib/dashboardAuth.ts"
+      ]
+    },
+    {
+      "id": "fmp-source",
+      "title": "Financial Modeling Prep",
+      "group": "external",
+      "kind": "provider",
+      "status": "implemented",
+      "description": "Quote source for SPX500 proxy/fallback, VIX, EURUSD, BTC primary, and gold fallback.",
+      "providerSymbols": [
+        "ESUSD",
+        "^GSPC",
+        "GCUSD",
+        "^VIX",
+        "EURUSD",
+        "BTCUSD"
+      ],
+      "files": [
+        "src/app/api/market-quotes/route.ts"
+      ]
+    },
+    {
+      "id": "twelve-source",
+      "title": "Twelve Data",
+      "group": "external",
+      "kind": "provider",
+      "status": "implemented",
+      "description": "Quote source for XAU/USD and CAD/USD, with BTC/USD fallback.",
+      "providerSymbols": [
+        "XAU/USD",
+        "CAD/USD",
+        "BTC/USD"
+      ],
+      "files": [
+        "src/app/api/market-quotes/route.ts"
+      ]
+    },
+    {
+      "id": "yahoo-source",
+      "title": "Yahoo Finance",
+      "group": "external",
+      "kind": "provider",
+      "status": "implemented",
+      "description": "Chart source for SPX500 30-minute candles using ^GSPC by default and ES=F for futures context.",
+      "providerSymbols": [
+        "^GSPC",
+        "ES=F",
+        "SPY"
+      ],
+      "files": [
+        "src/app/api/market-candles/route.ts"
+      ]
+    },
+    {
+      "id": "cmc-source",
+      "title": "CoinMarketCap Fear & Greed",
+      "group": "external",
+      "kind": "provider",
+      "status": "implemented",
+      "description": "Crypto sentiment source accessed only through /api/fear-greed.",
+      "files": [
+        "src/app/api/fear-greed/route.ts"
+      ]
+    },
+    {
+      "id": "external-tools",
+      "title": "External Trading Tools",
+      "group": "external",
+      "kind": "manual-source",
+      "status": "manual",
+      "description": "Linked specialist platforms and manual checklist inputs. The MVP summarizes these tools instead of rebuilding them.",
+      "tools": [
+        "MMT Terminal",
+        "TradingView",
+        "Coinalyze",
+        "Deribit Options",
+        "CVD",
+        "Open Interest",
+        "Liquidation Heatmap",
+        "Funding Rates",
+        "Orderflow",
+        "Candlestick Telemetry",
+        "Volume Analysis",
+        "Net Long/Short"
+      ],
+      "files": [
+        "src/components/dashboard/MarketSituationModule.tsx",
+        "src/data/mockDashboardData.ts"
+      ]
+    },
+    {
+      "id": "gamma-external",
+      "title": "@gexbot15 Gamma Image",
+      "group": "external",
+      "kind": "manual-source",
+      "status": "manual",
+      "description": "User-provided gamma chart reference. The app stores the image as a local data URL; it does not scrape, OCR, or upload to a server.",
+      "files": [
+        "src/components/dashboard/GammaContextModule.tsx",
+        "src/lib/gammaImageUpload.ts"
+      ]
+    },
+    {
+      "id": "csv-files",
+      "title": "Local CSV Files",
+      "group": "external",
+      "kind": "file-input",
+      "status": "manual",
+      "description": "Browser file inputs for account equity history and exchange closed-trade ledger imports.",
+      "files": [
+        "src/components/dashboard/PerformanceModule.tsx"
+      ]
+    },
+    {
+      "id": "economic-calendar-source",
+      "title": "Economic Calendar Fixture",
+      "group": "external",
+      "kind": "local-data",
+      "status": "implemented",
+      "description": "Static 2026 economic events derived from the local Forex Factory spreadsheet workflow and filtered by active date.",
+      "files": [
+        "src/economic-events/Forex Factory Calendar.xlsx",
+        "src/data/economicCalendar2026.ts",
+        "src/lib/economicCalendar.ts"
+      ]
+    },
+    {
+      "id": "quote-normalizers",
+      "title": "Quote Normalizers",
+      "group": "normalization",
+      "kind": "normalization",
+      "status": "implemented",
+      "description": "Transforms FMP and Twelve Data payloads into the shared MarketQuote contract and controlled error/unavailable rows.",
+      "files": [
+        "src/lib/fmpQuoteNormalization.ts",
+        "src/lib/twelveQuoteNormalization.ts",
+        "src/types/marketQuotes.ts"
+      ]
+    },
+    {
+      "id": "candle-normalizer",
+      "title": "Yahoo Candle Normalizer",
+      "group": "normalization",
+      "kind": "normalization",
+      "status": "implemented",
+      "description": "Parses Yahoo chart payloads into typed 30-minute market candles.",
+      "files": [
+        "src/lib/yahooCandleNormalization.ts",
+        "src/lib/marketCandleValidation.ts",
+        "src/types/marketCandles.ts"
+      ]
+    },
+    {
+      "id": "fear-greed-normalizer",
+      "title": "Fear & Greed Normalizer",
+      "group": "normalization",
+      "kind": "normalization",
+      "status": "implemented",
+      "description": "Maps CoinMarketCap response data to the dashboard FearGreedSnapshot view model.",
+      "files": [
+        "src/lib/fearGreedNormalization.ts",
+        "src/types/fearGreed.ts"
+      ]
+    },
+    {
+      "id": "import-parsers",
+      "title": "CSV Import Parsers",
+      "group": "normalization",
+      "kind": "parser",
+      "status": "implemented",
+      "description": "Validates account equity CSV rows and exchange trade ledger CSV rows before persistence and metric derivation.",
+      "files": [
+        "src/lib/accountEquityCsvImport.ts",
+        "src/lib/exchangeTradeLedgerCsvImport.ts",
+        "src/types/accountEquityImport.ts",
+        "src/types/tradeLedgerImport.ts"
+      ]
+    },
+    {
+      "id": "performance-calculations",
+      "title": "Performance Calculations",
+      "group": "normalization",
+      "kind": "calculation",
+      "status": "implemented",
+      "description": "Derives account-equity return snapshots and closed-trade metrics, then adapts domain results into PerformanceSnapshot for the module.",
+      "files": [
+        "src/lib/performanceReviewCalculations.ts",
+        "src/lib/tradeLedgerCalculations.ts",
+        "src/lib/performanceReviewViewModel.ts"
+      ]
+    },
+    {
+      "id": "snapshot-normalizers",
+      "title": "Snapshot Normalizers",
+      "group": "normalization",
+      "kind": "normalization",
+      "status": "implemented",
+      "description": "Creates, clones, and normalizes DailyDashboardSnapshot, GammaSnapshot, market capture, sentiment capture, and manual market-news shapes.",
+      "files": [
+        "src/lib/dailySnapshotFactory.ts",
+        "src/lib/dailyMarketSnapshotCapture.ts",
+        "src/lib/gammaSnapshot.ts",
+        "src/types/dailySnapshot.ts"
+      ]
+    },
+    {
+      "id": "economic-calendar-normalizer",
+      "title": "Economic Calendar Helpers",
+      "group": "normalization",
+      "kind": "normalization",
+      "status": "implemented",
+      "description": "Normalizes spreadsheet rows, Excel time fractions, and per-day event ordering for the Trading Context calendar column.",
+      "files": [
+        "src/lib/economicCalendar.ts"
+      ]
+    },
+    {
+      "id": "market-quotes-browser-cache",
+      "title": "Market Quotes Browser Cache",
+      "group": "state",
+      "kind": "cache",
+      "status": "cache",
+      "description": "Client-side stale quote cache used when /api/market-quotes fails after a previous successful response.",
+      "files": [
+        "src/lib/marketQuoteStorage.ts"
+      ],
+      "storage": [
+        "market-command:market-quotes-cache"
+      ]
+    },
+    {
+      "id": "fear-greed-browser-cache",
+      "title": "Fear & Greed Browser Cache",
+      "group": "state",
+      "kind": "cache",
+      "status": "cache",
+      "description": "Client-side stale sentiment cache used when /api/fear-greed fails after a previous successful response.",
+      "files": [
+        "src/lib/fearGreedStorage.ts"
+      ],
+      "storage": [
+        "market-command:fear-greed-cache"
+      ]
+    },
+    {
+      "id": "account-equity-storage",
+      "title": "Account Equity Import Store",
+      "group": "state",
+      "kind": "persistence",
+      "status": "implemented",
+      "description": "Browser localStorage for imported account equity history and import summary. Kept separate from daily snapshots and trade ledger records.",
+      "files": [
+        "src/lib/accountEquityStorage.ts"
+      ],
+      "storage": [
+        "market-command:account-equity-history",
+        "market-command:account-equity-history:import-summary"
+      ]
+    },
+    {
+      "id": "trade-ledger-storage",
+      "title": "Exchange Trade Ledger Store",
+      "group": "state",
+      "kind": "persistence",
+      "status": "implemented",
+      "description": "Browser localStorage for imported exchange closed-trade records and import summary. Kept separate from daily snapshots and account equity history.",
+      "files": [
+        "src/lib/exchangeTradeLedgerStorage.ts"
+      ],
+      "storage": [
+        "market-command:exchange-trade-ledger",
+        "market-command:exchange-trade-ledger:import-summary"
+      ]
+    },
+    {
+      "id": "server-memory-caches",
+      "title": "Server Memory Caches",
+      "group": "api",
+      "kind": "cache",
+      "status": "cache",
+      "description": "Non-durable module-level caches for market quotes and Fear & Greed route results. They reset with the server process or deployment runtime.",
+      "files": [
+        "src/app/api/market-quotes/route.ts",
+        "src/app/api/fear-greed/route.ts"
+      ]
+    },
+    {
+      "id": "market-news-manual",
+      "title": "Manual Market News Snapshot",
+      "group": "state",
+      "kind": "manual-persistence",
+      "status": "implemented",
+      "description": "Curated daily headlines are manually added, edited, deleted, and saved inside DailyDashboardSnapshot.marketNews.",
+      "files": [
+        "src/components/dashboard/TradingContextModule.tsx",
+        "src/types/dailySnapshot.ts"
+      ],
+      "storage": [
+        "market-command:daily-snapshot:${date}.marketNews"
+      ]
+    },
+    {
+      "id": "supabase-future",
+      "title": "Supabase Persistence",
+      "group": "future",
+      "kind": "planned-migration",
+      "status": "future",
+      "description": "Referenced as the durable multi-device persistence and auth migration path. No Supabase client, schema, or backend writes are implemented.",
+      "files": [
+        "README.md",
+        "docs/project_constitution.md",
+        "docs/task_plan.md",
+        "docs/mvp_handoff.md"
+      ]
+    },
+    {
+      "id": "google-sheets-future",
+      "title": "Google Sheets Sync",
+      "group": "future",
+      "kind": "planned-integration",
+      "status": "future",
+      "description": "Referenced as a future account-equity history source after the manual CSV workflow is proven. No sync integration is implemented.",
+      "files": [
+        "docs/task_plan.md",
+        "docs/mvp_handoff.md"
+      ]
+    },
+    {
+      "id": "xlsx-future",
+      "title": "XLSX Import",
+      "group": "future",
+      "kind": "planned-import",
+      "status": "future",
+      "description": "Referenced as future exchange import support. Current import support is CSV only.",
+      "files": [
+        "README.md",
+        "docs/task_plan.md",
+        "docs/mvp_handoff.md"
+      ]
+    },
+    {
+      "id": "news-ingestion-future",
+      "title": "Market News Ingestion",
+      "group": "future",
+      "kind": "planned-integration",
+      "status": "future",
+      "description": "Referenced as future watched news/X ingestion. Current Market News is manual curated daily snapshot state only.",
+      "files": [
+        "src/types/dailySnapshot.ts",
+        "src/components/dashboard/TradingContextModule.tsx",
+        "docs/task_plan.md"
+      ]
+    },
+    {
+      "id": "gamma-automation-future",
+      "title": "Gamma OCR / Provider Automation",
+      "group": "future",
+      "kind": "planned-integration",
+      "status": "future",
+      "description": "Referenced as future work only. Current Gamma workflow is manual-first with local image reference; no scraping, OCR, provider automation, or server upload exists.",
+      "files": [
+        "docs/project_constitution.md",
+        "docs/task_plan.md",
+        "docs/mvp_handoff.md"
+      ]
+    },
+    {
+      "id": "exchange-api-future",
+      "title": "Exchange API Integration",
+      "group": "future",
+      "kind": "planned-integration",
+      "status": "future",
+      "description": "Referenced as a limitation/future path. Current exchange trade data enters through local CSV import only.",
+      "files": [
+        "README.md",
+        "docs/mvp_handoff.md"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-app-shell-data",
+      "from": "app-router-shell",
+      "to": "dashboard-shell",
+      "label": "renders with mock view model",
+      "flow": "app-composition",
+      "description": "src/app/page.tsx passes dashboardData into DashboardShell."
+    },
+    {
+      "id": "edge-shell-provider",
+      "from": "dashboard-shell",
+      "to": "daily-snapshot-provider",
+      "label": "wraps modules",
+      "flow": "app-composition",
+      "description": "DailySnapshotProvider gives editable daily state to child modules."
+    },
+    {
+      "id": "edge-provider-storage-load",
+      "from": "daily-snapshot-storage",
+      "to": "daily-snapshot-provider",
+      "label": "load/list dates",
+      "flow": "daily-snapshot",
+      "description": "Provider loads today's snapshot and saved date archive from localStorage after client mount."
+    },
+    {
+      "id": "edge-provider-storage-save",
+      "from": "daily-snapshot-provider",
+      "to": "daily-snapshot-storage",
+      "label": "save snapshot",
+      "flow": "daily-snapshot",
+      "description": "Provider persists full DailyDashboardSnapshot through saveSnapshot/updateSnapshot."
+    },
+    {
+      "id": "edge-shell-performance",
+      "from": "dashboard-shell",
+      "to": "performance-module",
+      "label": "module slot",
+      "flow": "app-composition",
+      "description": "Performance Review receives the initial PerformanceSnapshot view model."
+    },
+    {
+      "id": "edge-shell-market",
+      "from": "dashboard-shell",
+      "to": "market-module",
+      "label": "module slot",
+      "flow": "app-composition",
+      "description": "Market Overview receives the initial MarketSituation view model."
+    },
+    {
+      "id": "edge-shell-gamma",
+      "from": "dashboard-shell",
+      "to": "gamma-module",
+      "label": "module slot",
+      "flow": "app-composition",
+      "description": "Gamma Context receives mock display context and reads saved daily gamma from provider."
+    },
+    {
+      "id": "edge-shell-fear-greed",
+      "from": "dashboard-shell",
+      "to": "fear-greed-module",
+      "label": "module slot",
+      "flow": "app-composition",
+      "description": "Fear & Greed receives initial mock sentiment and hydrates client-side."
+    },
+    {
+      "id": "edge-shell-context",
+      "from": "dashboard-shell",
+      "to": "trading-context-module",
+      "label": "module slot",
+      "flow": "app-composition",
+      "description": "Trading Context consumes shared daily state for date, synthesis, news, and checklist."
+    },
+    {
+      "id": "edge-shell-capture",
+      "from": "dashboard-shell",
+      "to": "market-snapshot-capture",
+      "label": "capture control",
+      "flow": "market-snapshot-capture",
+      "description": "The capture control uses provider state to save point-in-time market and sentiment context."
+    },
+    {
+      "id": "edge-market-fetch-quotes",
+      "from": "market-module",
+      "to": "api-market-quotes",
+      "label": "fetch after mount",
+      "flow": "market-overview",
+      "description": "MarketSituationModule fetches /api/market-quotes with no-store and validates the result."
+    },
+    {
+      "id": "edge-fmp-quotes",
+      "from": "fmp-source",
+      "to": "api-market-quotes",
+      "label": "server fetch",
+      "flow": "market-overview",
+      "description": "The route calls FMP with server-side FMP_API_KEY."
+    },
+    {
+      "id": "edge-twelve-quotes",
+      "from": "twelve-source",
+      "to": "api-market-quotes",
+      "label": "server fetch",
+      "flow": "market-overview",
+      "description": "The route calls Twelve Data with server-side TWELVE_DATA_API_KEY."
+    },
+    {
+      "id": "edge-quote-normalizers",
+      "from": "api-market-quotes",
+      "to": "quote-normalizers",
+      "label": "normalize payloads",
+      "flow": "market-overview",
+      "description": "Provider responses are transformed into MarketQuote rows."
+    },
+    {
+      "id": "edge-quotes-cache",
+      "from": "market-module",
+      "to": "market-quotes-browser-cache",
+      "label": "save successful route result",
+      "flow": "market-overview",
+      "description": "The client stores successful quote results as stale fallback cache."
+    },
+    {
+      "id": "edge-quotes-candidate",
+      "from": "market-module",
+      "to": "daily-snapshot-provider",
+      "label": "publish capture candidate",
+      "flow": "market-snapshot-capture",
+      "description": "Market Overview publishes typed market rows for explicit capture."
+    },
+    {
+      "id": "edge-chart-api",
+      "from": "candles-chart",
+      "to": "api-market-candles",
+      "label": "fetch source=index|futures",
+      "flow": "market-overview",
+      "description": "The candle chart fetches SPX500 30-minute candles for selected chart source."
+    },
+    {
+      "id": "edge-yahoo-candles",
+      "from": "yahoo-source",
+      "to": "api-market-candles",
+      "label": "server fetch",
+      "flow": "market-overview",
+      "description": "The route calls Yahoo Finance chart endpoints from the server."
+    },
+    {
+      "id": "edge-candle-normalizer",
+      "from": "api-market-candles",
+      "to": "candle-normalizer",
+      "label": "normalize candles",
+      "flow": "market-overview",
+      "description": "Yahoo payloads become typed MarketCandle rows consumed by lightweight-charts."
+    },
+    {
+      "id": "edge-candle-render",
+      "from": "candle-normalizer",
+      "to": "candles-chart",
+      "label": "render chart",
+      "flow": "market-overview",
+      "description": "Normalized candles render inside the Market Overview chart component."
+    },
+    {
+      "id": "edge-fear-api",
+      "from": "fear-greed-module",
+      "to": "api-fear-greed",
+      "label": "fetch after mount",
+      "flow": "fear-greed",
+      "description": "FearGreedModule fetches /api/fear-greed and falls back to browser cache or mock prop."
+    },
+    {
+      "id": "edge-cmc-api",
+      "from": "cmc-source",
+      "to": "api-fear-greed",
+      "label": "server fetch",
+      "flow": "fear-greed",
+      "description": "The route calls CoinMarketCap with server-side CMC_API_KEY."
+    },
+    {
+      "id": "edge-fear-normalizer",
+      "from": "api-fear-greed",
+      "to": "fear-greed-normalizer",
+      "label": "normalize sentiment",
+      "flow": "fear-greed",
+      "description": "CoinMarketCap payload becomes a dashboard sentiment snapshot."
+    },
+    {
+      "id": "edge-fear-cache",
+      "from": "fear-greed-module",
+      "to": "fear-greed-browser-cache",
+      "label": "save successful read",
+      "flow": "fear-greed",
+      "description": "The browser stale cache is separate from daily snapshots."
+    },
+    {
+      "id": "edge-fear-candidate",
+      "from": "fear-greed-module",
+      "to": "daily-snapshot-provider",
+      "label": "publish capture candidate",
+      "flow": "market-snapshot-capture",
+      "description": "Fear & Greed publishes typed sentiment data for explicit capture."
+    },
+    {
+      "id": "edge-capture-save",
+      "from": "market-snapshot-capture",
+      "to": "daily-snapshot-storage",
+      "label": "persist point-in-time context",
+      "flow": "market-snapshot-capture",
+      "description": "Capture saves SPX/watchlist and sentiment fields into the active daily snapshot key."
+    },
+    {
+      "id": "edge-csv-import",
+      "from": "csv-files",
+      "to": "performance-module",
+      "label": "browser FileReader",
+      "flow": "performance-import",
+      "description": "User selects local CSV files through Performance Review actions."
+    },
+    {
+      "id": "edge-import-parse",
+      "from": "performance-module",
+      "to": "import-parsers",
+      "label": "parse and validate",
+      "flow": "performance-import",
+      "description": "CSV text is parsed into previewable import results with errors and warnings."
+    },
+    {
+      "id": "edge-equity-store",
+      "from": "performance-module",
+      "to": "account-equity-storage",
+      "label": "confirm equity import",
+      "flow": "performance-import",
+      "description": "Confirmed account equity records and summary are saved locally."
+    },
+    {
+      "id": "edge-ledger-store",
+      "from": "performance-module",
+      "to": "trade-ledger-storage",
+      "label": "confirm trade-ledger import",
+      "flow": "performance-import",
+      "description": "Confirmed exchange closed-trade records and summary are saved locally."
+    },
+    {
+      "id": "edge-performance-calc",
+      "from": "account-equity-storage",
+      "to": "performance-calculations",
+      "label": "derive account metrics",
+      "flow": "performance-import",
+      "description": "Imported account equity history drives account-level performance metrics."
+    },
+    {
+      "id": "edge-ledger-calc",
+      "from": "trade-ledger-storage",
+      "to": "performance-calculations",
+      "label": "derive trade metrics",
+      "flow": "performance-import",
+      "description": "Imported accepted close trades drive trade count, win rate, fees, PnL, profit factor, and breakdown metrics."
+    },
+    {
+      "id": "edge-performance-render",
+      "from": "performance-calculations",
+      "to": "performance-module",
+      "label": "adapt to view model",
+      "flow": "performance-import",
+      "description": "Domain calculations are adapted into PerformanceSnapshot for rendering."
+    },
+    {
+      "id": "edge-position-save",
+      "from": "performance-module",
+      "to": "daily-snapshot-storage",
+      "label": "save currentPosition",
+      "flow": "manual-edits",
+      "description": "Manual current position is daily snapshot state and is not mixed with account equity or exchange ledger data."
+    },
+    {
+      "id": "edge-gamma-manual",
+      "from": "gamma-external",
+      "to": "gamma-module",
+      "label": "manual levels/image",
+      "flow": "manual-edits",
+      "description": "User enters gamma levels and optionally uploads a local image reference."
+    },
+    {
+      "id": "edge-gamma-save",
+      "from": "gamma-module",
+      "to": "daily-snapshot-storage",
+      "label": "save gamma",
+      "flow": "manual-edits",
+      "description": "Manual gamma fields and image data URL persist only inside active DailyDashboardSnapshot.gamma."
+    },
+    {
+      "id": "edge-news-edit",
+      "from": "external-tools",
+      "to": "market-news-manual",
+      "label": "curated headlines",
+      "flow": "market-news",
+      "description": "Operator summarizes market news manually in the daily snapshot."
+    },
+    {
+      "id": "edge-news-save",
+      "from": "market-news-manual",
+      "to": "daily-snapshot-storage",
+      "label": "save marketNews",
+      "flow": "market-news",
+      "description": "Saved market news is filtered by active date and remains manual snapshot state."
+    },
+    {
+      "id": "edge-calendar-normalize",
+      "from": "economic-calendar-source",
+      "to": "economic-calendar-normalizer",
+      "label": "normalize/filter",
+      "flow": "economic-calendar",
+      "description": "Static calendar data is filtered and sorted for the active date."
+    },
+    {
+      "id": "edge-calendar-render",
+      "from": "economic-calendar-normalizer",
+      "to": "trading-context-module",
+      "label": "render macro tape",
+      "flow": "economic-calendar",
+      "description": "Trading Context renders the active-date economic events."
+    },
+    {
+      "id": "edge-synthesis-save",
+      "from": "trading-context-module",
+      "to": "daily-snapshot-storage",
+      "label": "save synthesis/checklist",
+      "flow": "trading-context",
+      "description": "Synthesis Notes Save and checklist toggles persist the full daily snapshot."
+    },
+    {
+      "id": "edge-snapshot-normalize",
+      "from": "snapshot-normalizers",
+      "to": "daily-snapshot-provider",
+      "label": "create/normalize snapshot",
+      "flow": "daily-snapshot",
+      "description": "Loaded and newly created snapshots are normalized before module consumption."
+    },
+    {
+      "id": "edge-auth-proxy-login",
+      "from": "auth-proxy",
+      "to": "api-login",
+      "label": "redirect unauthenticated",
+      "flow": "auth",
+      "description": "Anonymous dashboard traffic is redirected to login and returns after successful cookie creation."
+    },
+    {
+      "id": "edge-supabase-migration",
+      "from": "daily-snapshot-storage",
+      "to": "supabase-future",
+      "label": "future durable migration",
+      "flow": "future-migration",
+      "description": "Docs recommend moving daily snapshots, equity history, trade ledger records, and derived summaries to Supabase when ready."
+    },
+    {
+      "id": "edge-account-supabase",
+      "from": "account-equity-storage",
+      "to": "supabase-future",
+      "label": "future durable migration",
+      "flow": "future-migration",
+      "description": "Imported equity history is a future Supabase persistence candidate."
+    },
+    {
+      "id": "edge-ledger-supabase",
+      "from": "trade-ledger-storage",
+      "to": "supabase-future",
+      "label": "future durable migration",
+      "flow": "future-migration",
+      "description": "Exchange trade ledger records are a future Supabase persistence candidate."
+    }
+  ],
+  "flows": [
+    {
+      "id": "app-composition",
+      "title": "App Composition",
+      "status": "implemented",
+      "summary": "The App Router page renders DashboardShell from mock view-model data, and DashboardShell wraps all modules in DailySnapshotProvider.",
+      "steps": [
+        "src/app/page.tsx imports dashboardData.",
+        "DashboardShell renders top-bar telemetry and module slots.",
+        "DailySnapshotProvider gives modules shared active-date daily state."
+      ],
+      "nodeIds": [
+        "app-router-shell",
+        "dashboard-shell",
+        "daily-snapshot-provider",
+        "performance-module",
+        "market-module",
+        "gamma-module",
+        "fear-greed-module",
+        "trading-context-module"
+      ],
+      "edgeIds": [
+        "edge-app-shell-data",
+        "edge-shell-provider",
+        "edge-shell-performance",
+        "edge-shell-market",
+        "edge-shell-gamma",
+        "edge-shell-fear-greed",
+        "edge-shell-context"
+      ]
+    },
+    {
+      "id": "daily-snapshot",
+      "title": "Daily Snapshot Persistence",
+      "status": "implemented",
+      "summary": "DailyDashboardSnapshot is the local command-state center. It is date-keyed, normalized on load, and saved through provider actions.",
+      "steps": [
+        "Provider loads today's snapshot from localStorage after mount.",
+        "Missing dates create a draft from the mock daily snapshot template.",
+        "Saved dates are inferred from localStorage keys.",
+        "saveSnapshot/updateSnapshot persists the full active snapshot."
+      ],
+      "nodeIds": [
+        "daily-snapshot-provider",
+        "daily-snapshot-storage",
+        "snapshot-normalizers"
+      ],
+      "edgeIds": [
+        "edge-provider-storage-load",
+        "edge-provider-storage-save",
+        "edge-snapshot-normalize"
+      ]
+    },
+    {
+      "id": "market-overview",
+      "title": "Market Overview Flow",
+      "status": "implemented",
+      "summary": "Market Overview renders mock-first, hydrates quotes from the server proxy, stores successful browser stale cache, and renders candles through Yahoo Finance route data.",
+      "steps": [
+        "MarketSituationModule renders fallback watchlist and SPX context.",
+        "Client fetches /api/market-quotes after mount.",
+        "The route fetches FMP and Twelve Data using server-side keys.",
+        "FMP/Twelve payloads normalize to MarketQuote rows.",
+        "Successful quote results save to browser stale cache.",
+        "MarketOverviewCandlesChart fetches /api/market-candles for Index or Futures.",
+        "Yahoo candle payloads normalize and render through lightweight-charts."
+      ],
+      "nodeIds": [
+        "market-module",
+        "api-market-quotes",
+        "fmp-source",
+        "twelve-source",
+        "quote-normalizers",
+        "market-quotes-browser-cache",
+        "candles-chart",
+        "api-market-candles",
+        "yahoo-source",
+        "candle-normalizer"
+      ],
+      "edgeIds": [
+        "edge-market-fetch-quotes",
+        "edge-fmp-quotes",
+        "edge-twelve-quotes",
+        "edge-quote-normalizers",
+        "edge-quotes-cache",
+        "edge-chart-api",
+        "edge-yahoo-candles",
+        "edge-candle-normalizer",
+        "edge-candle-render"
+      ]
+    },
+    {
+      "id": "market-snapshot-capture",
+      "title": "Explicit Market Snapshot Capture",
+      "status": "implemented",
+      "summary": "Live/cache quote and sentiment data remain separate from daily snapshots until the user clicks Capture Market Snapshot.",
+      "steps": [
+        "Market Overview publishes a market capture candidate to DailySnapshotProvider.",
+        "Fear & Greed publishes a sentiment capture candidate to DailySnapshotProvider.",
+        "Capture Market Snapshot builds SPX and FearGreed snapshot fields from candidates.",
+        "The active date's localStorage snapshot is updated with preserved provider/status/source labels."
+      ],
+      "nodeIds": [
+        "market-module",
+        "fear-greed-module",
+        "daily-snapshot-provider",
+        "market-snapshot-capture",
+        "daily-snapshot-storage"
+      ],
+      "edgeIds": [
+        "edge-quotes-candidate",
+        "edge-fear-candidate",
+        "edge-capture-save"
+      ]
+    },
+    {
+      "id": "performance-import",
+      "title": "Performance Review / Import Flow",
+      "status": "implemented",
+      "summary": "Performance Review supports local account-equity CSV import and exchange trade-ledger CSV import, keeping both stores separate from daily snapshots.",
+      "steps": [
+        "User chooses an account equity or trade ledger CSV through Performance Review actions.",
+        "FileReader passes CSV text to the appropriate parser.",
+        "Parser result renders import summary and issues.",
+        "Confirm Import saves accepted records and import summary to localStorage.",
+        "Performance metrics derive from account equity history plus optional accepted closed-trade records.",
+        "Manual Current Position saves separately into DailyDashboardSnapshot.currentPosition."
+      ],
+      "nodeIds": [
+        "performance-module",
+        "csv-files",
+        "import-parsers",
+        "account-equity-storage",
+        "trade-ledger-storage",
+        "performance-calculations",
+        "daily-snapshot-storage"
+      ],
+      "edgeIds": [
+        "edge-csv-import",
+        "edge-import-parse",
+        "edge-equity-store",
+        "edge-ledger-store",
+        "edge-performance-calc",
+        "edge-ledger-calc",
+        "edge-performance-render",
+        "edge-position-save"
+      ]
+    },
+    {
+      "id": "trading-context",
+      "title": "Trading Context Save / Cancel Flow",
+      "status": "implemented",
+      "summary": "Synthesis Notes and checklist status changes operate on active-date DailyDashboardSnapshot state. Draft edits are reset on cancel or date switch.",
+      "steps": [
+        "Trading Context clones saved synthesis into local draft state.",
+        "Edit mode mutates draft fields only.",
+        "Save writes updated synthesis and timestamps through DailySnapshotProvider.updateSnapshot.",
+        "Cancel restores the draft from the saved snapshot.",
+        "Checklist status buttons cycle not checked, watch, checked and immediately save the full snapshot.",
+        "Changing active date loads that date and exits edit modes."
+      ],
+      "nodeIds": [
+        "trading-context-module",
+        "daily-snapshot-provider",
+        "daily-snapshot-storage"
+      ],
+      "edgeIds": [
+        "edge-synthesis-save"
+      ]
+    },
+    {
+      "id": "economic-calendar",
+      "title": "Economic Calendar Flow",
+      "status": "implemented",
+      "summary": "The Economic Calendar column uses a static 2026 event dataset and filters/sorts events for the active date.",
+      "steps": [
+        "Trading Context reads activeDate from DailySnapshotProvider.",
+        "getEconomicCalendarEventsForDate filters economicCalendar2026.",
+        "Events render in time order inside the Economic Calendar column."
+      ],
+      "nodeIds": [
+        "economic-calendar-source",
+        "economic-calendar-normalizer",
+        "trading-context-module",
+        "daily-snapshot-provider"
+      ],
+      "edgeIds": [
+        "edge-calendar-normalize",
+        "edge-calendar-render"
+      ]
+    },
+    {
+      "id": "market-news",
+      "title": "Market News Curated Snapshot Flow",
+      "status": "implemented",
+      "summary": "Market News is a manual curated read stored in the active daily snapshot. Future watched-source ingestion is planned but not implemented.",
+      "steps": [
+        "User clicks Edit in the Market News column.",
+        "Draft headlines can be added, changed, deleted, categorized, and linked.",
+        "Save trims and filters headlines, assigns the active date, and persists them through DailySnapshotProvider.",
+        "Cancel restores draft headlines from the active saved snapshot."
+      ],
+      "nodeIds": [
+        "trading-context-module",
+        "market-news-manual",
+        "daily-snapshot-storage",
+        "news-ingestion-future"
+      ],
+      "edgeIds": [
+        "edge-news-edit",
+        "edge-news-save"
+      ]
+    },
+    {
+      "id": "manual-edits",
+      "title": "Manual Daily Edit Flows",
+      "status": "implemented",
+      "summary": "Manual Current Position, Gamma Context, Gamma Image, Synthesis Notes, Checklist, and Market News save into active-date daily snapshot state.",
+      "steps": [
+        "Manual form edits are staged in component-local draft state.",
+        "Save validates or normalizes values and calls updateSnapshot.",
+        "Cancel resets drafts from the saved snapshot.",
+        "Date switching cancels unsaved drafts and loads the selected date."
+      ],
+      "nodeIds": [
+        "performance-module",
+        "gamma-module",
+        "trading-context-module",
+        "daily-snapshot-provider",
+        "daily-snapshot-storage",
+        "gamma-external"
+      ],
+      "edgeIds": [
+        "edge-position-save",
+        "edge-gamma-manual",
+        "edge-gamma-save",
+        "edge-synthesis-save",
+        "edge-news-save"
+      ]
+    },
+    {
+      "id": "fear-greed",
+      "title": "Fear & Greed Flow",
+      "status": "implemented",
+      "summary": "CoinMarketCap sentiment data is fetched through a server-side route, cached, shown in the module, and only persisted to daily history through explicit capture.",
+      "steps": [
+        "FearGreedModule starts from mock prop data.",
+        "Client fetches /api/fear-greed after mount.",
+        "The route fetches CoinMarketCap with CMC_API_KEY and in-memory stale fallback.",
+        "Successful reads save to browser stale cache and publish a capture candidate.",
+        "Explicit Capture Market Snapshot persists the current read into DailyDashboardSnapshot.fearGreed."
+      ],
+      "nodeIds": [
+        "fear-greed-module",
+        "api-fear-greed",
+        "cmc-source",
+        "fear-greed-normalizer",
+        "fear-greed-browser-cache",
+        "market-snapshot-capture"
+      ],
+      "edgeIds": [
+        "edge-fear-api",
+        "edge-cmc-api",
+        "edge-fear-normalizer",
+        "edge-fear-cache",
+        "edge-fear-candidate",
+        "edge-capture-save"
+      ]
+    },
+    {
+      "id": "auth",
+      "title": "Authentication Gate",
+      "status": "implemented",
+      "summary": "A minimal password gate protects app routes through a signed httpOnly cookie.",
+      "steps": [
+        "Proxy allows /login and /api/login.",
+        "Unauthenticated protected requests redirect to /login with next path.",
+        "POST /api/login compares submitted password with server-side DASHBOARD_PASSWORD.",
+        "Successful login sets trading_dashboard_auth as an httpOnly cookie."
+      ],
+      "nodeIds": [
+        "auth-proxy",
+        "api-login"
+      ],
+      "edgeIds": [
+        "edge-auth-proxy-login"
+      ]
+    },
+    {
+      "id": "future-migration",
+      "title": "Future Supabase Migration Path",
+      "status": "future",
+      "summary": "Docs reference Supabase as the future durable persistence and auth layer. It is not implemented.",
+      "steps": [
+        "Daily snapshots are the likely durable command-state table.",
+        "Account equity history remains separate from daily snapshots.",
+        "Exchange trade ledger records remain separate from account equity and daily snapshots.",
+        "Derived summaries can be stored or recomputed after source records are durable.",
+        "Supabase/auth providers are deferred until after the private local MVP."
+      ],
+      "nodeIds": [
+        "daily-snapshot-storage",
+        "account-equity-storage",
+        "trade-ledger-storage",
+        "supabase-future",
+        "google-sheets-future",
+        "xlsx-future",
+        "news-ingestion-future",
+        "gamma-automation-future",
+        "exchange-api-future"
+      ],
+      "edgeIds": [
+        "edge-supabase-migration",
+        "edge-account-supabase",
+        "edge-ledger-supabase"
+      ]
+    }
+  ],
+  "future": [
+    {
+      "id": "future-supabase",
+      "title": "Supabase persistence and auth",
+      "status": "future",
+      "description": "Planned migration for daily snapshots, account equity history, exchange trade ledger records, derived summaries, and stronger auth. No implementation exists."
+    },
+    {
+      "id": "future-google-sheets",
+      "title": "Google Sheets account-equity sync",
+      "status": "future",
+      "description": "Planned after manual CSV workflow is proven. Current account equity source can be mock or CSV import only."
+    },
+    {
+      "id": "future-xlsx",
+      "title": "XLSX import",
+      "status": "future",
+      "description": "Planned for exchange imports after CSV support. Current imports are CSV only."
+    },
+    {
+      "id": "future-news-ingestion",
+      "title": "Watched market news / X ingestion",
+      "status": "future",
+      "description": "Planned provider choice not implemented. Current Market News is manual curated snapshot state."
+    },
+    {
+      "id": "future-gamma-automation",
+      "title": "Gamma OCR, provider, or X/Twitter automation",
+      "status": "future",
+      "description": "Explicitly deferred. Current Gamma Context is manual and local image-reference only."
+    },
+    {
+      "id": "future-exchange-api",
+      "title": "Exchange API integration",
+      "status": "future",
+      "description": "Explicitly absent from MVP. Current exchange records come from CSV import only."
+    }
+  ],
+  "localStorageKeys": [
+    {
+      "key": "market-command:daily-snapshot:${date}",
+      "owner": "DailySnapshotProvider",
+      "contents": "DailyDashboardSnapshot for one active trading date"
+    },
+    {
+      "key": "market-command:account-equity-history",
+      "owner": "PerformanceModule",
+      "contents": "Imported AccountEquitySnapshot[]"
+    },
+    {
+      "key": "market-command:account-equity-history:import-summary",
+      "owner": "PerformanceModule",
+      "contents": "EquityImportSummary"
+    },
+    {
+      "key": "market-command:exchange-trade-ledger",
+      "owner": "PerformanceModule",
+      "contents": "Imported ExchangeTradeRecord[]"
+    },
+    {
+      "key": "market-command:exchange-trade-ledger:import-summary",
+      "owner": "PerformanceModule",
+      "contents": "TradeLedgerImportSummary"
+    },
+    {
+      "key": "market-command:fear-greed-cache",
+      "owner": "FearGreedModule",
+      "contents": "Browser stale FearGreedSnapshot cache"
+    },
+    {
+      "key": "market-command:market-quotes-cache",
+      "owner": "MarketSituationModule",
+      "contents": "Browser stale MarketQuotesFetchResult cache"
+    }
+  ]
+}
