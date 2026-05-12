@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDailySnapshot } from "@/components/dashboard/DailySnapshotProvider";
 import { SectionPanel } from "@/components/ui/SectionPanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { economicCalendar2026 } from "@/data/economicCalendar2026";
+import { getEconomicCalendarEventsForDate } from "@/lib/economicCalendar";
 import { cloneSynthesisNotes } from "@/lib/dailySnapshotFactory";
 import type {
   ChecklistStatus,
@@ -38,33 +40,6 @@ const marketNews = [
   }
 ];
 
-const economicEvents = [
-  {
-    time: "10:00",
-    event: "ISM Manufacturing PMI",
-    impact: "high",
-    detail: "Fcst 50.3 / Prior 50.2"
-  },
-  {
-    time: "10:00",
-    event: "JOLTS Job Openings",
-    impact: "medium",
-    detail: "Fcst 8.75M / Prior 8.76M"
-  },
-  {
-    time: "13:00",
-    event: "Treasury Auction",
-    impact: "medium",
-    detail: "Duration supply watch"
-  },
-  {
-    time: "14:00",
-    event: "Fed Speaker",
-    impact: "low",
-    detail: "Tone risk only"
-  }
-];
-
 const tradingBiasOptions: TradingBiasOption[] = [
   "Bullish",
   "Bearish",
@@ -87,18 +62,6 @@ function getToolTone(status: ChecklistStatus) {
   }
 
   return "neutral";
-}
-
-function getImpactTone(impact: string) {
-  if (impact === "high") {
-    return "warning";
-  }
-
-  if (impact === "medium") {
-    return "neutral";
-  }
-
-  return "positive";
 }
 
 function getNextChecklistStatus(status: ChecklistStatus) {
@@ -124,6 +87,10 @@ export function TradingContextModule({ context: _context }: TradingContextModule
     cloneSynthesisNotes(dailySnapshot.synthesis)
   );
   const [isEditingSynthesis, setIsEditingSynthesis] = useState(false);
+  const selectedEconomicEvents = useMemo(
+    () => getEconomicCalendarEventsForDate(economicCalendar2026, activeDate),
+    [activeDate]
+  );
 
   useEffect(() => {
     setDraftSynthesis(cloneSynthesisNotes(dailySnapshot.synthesis));
@@ -267,16 +234,22 @@ export function TradingContextModule({ context: _context }: TradingContextModule
             <span>Macro tape</span>
           </header>
           <div className="calendarFeed">
-            {economicEvents.map((item) => (
-              <article className="calendarFeed__item" key={`${item.time}-${item.event}`}>
-                <time>{item.time}</time>
-                <div>
-                  <strong>{item.event}</strong>
-                  <span>{item.detail}</span>
-                </div>
-                <StatusBadge tone={getImpactTone(item.impact)}>{item.impact}</StatusBadge>
-              </article>
-            ))}
+            {selectedEconomicEvents.length > 0 ? (
+              selectedEconomicEvents.map((item) => (
+                <article
+                  className="calendarFeed__item"
+                  key={`${item.date}-${item.time ?? "no-time"}-${item.currency ?? "no-currency"}-${item.event}`}
+                >
+                  <time dateTime={item.time ?? undefined}>{item.time ?? "--:--"}</time>
+                  <div>
+                    <strong>{item.event}</strong>
+                  </div>
+                  <StatusBadge tone="neutral">{item.currency ?? "N/A"}</StatusBadge>
+                </article>
+              ))
+            ) : (
+              <p className="calendarFeed__empty">NO WATCHED MACRO EVENTS TODAY</p>
+            )}
           </div>
         </section>
 
